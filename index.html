@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureBank Admin Portal</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="bank-logo">
+                <i class="fas fa-university"></i>
+                <h1>SecureBank</h1>
+                <p>Administrative Portal</p>
+            </div>
+            
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="mfa">2FA Code</label>
+                    <input type="text" id="mfa" name="mfa" placeholder="6-digit code" maxlength="6" required>
+                </div>
+                
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Access Admin Portal
+                </button>
+            </form>
+            
+            <div class="security-notice">
+                <i class="fas fa-shield-alt"></i>
+                <p>This is a secure administrative area. All activities are monitored and logged.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard (hidden initially) -->
+    <div id="adminDashboard" class="dashboard-container" style="display: none;">
+        <header class="dashboard-header">
+            <div class="header-left">
+                <i class="fas fa-university"></i>
+                <h1>SecureBank Admin Portal</h1>
+            </div>
+            <div class="header-right">
+                <span class="admin-info">
+                    <i class="fas fa-user-shield"></i>
+                    Admin User
+                </span>
+                <button id="logoutBtn" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </header>
+
+        <nav class="dashboard-nav">
+            <ul>
+                <li class="active" data-section="overview">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Overview
+                </li>
+                <li data-section="customers">
+                    <i class="fas fa-users"></i>
+                    Customer Management
+                </li>
+                <li data-section="transactions">
+                    <i class="fas fa-exchange-alt"></i>
+                    Transactions
+                </li>
+                <li data-section="fraud">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Fraud Detection
+                </li>
+                <li data-section="system">
+                    <i class="fas fa-server"></i>
+                    System Health
+                </li>
+            </ul>
+        </nav>
+
+        <main class="dashboard-content">
+            <!-- Overview Section -->
+            <section id="overview" class="dashboard-section active">
+                <h2>Banking Overview</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="metric-info">
+                            <h3>Total Customers</h3>
+                            <span class="metric-value">47,892</span>
+                            <span class="metric-change positive">+2.3%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="metric-info">
+                            <h3>Total Assets</h3>
+                            <span class="metric-value">$2.4B</span>
+                            <span class="metric-change positive">+5.7%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="metric-info">
+                            <h3>Daily Transactions</h3>
+                            <span class="metric-value">12,847</span>
+                            <span class="metric-change positive">+1.8%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="metric-info">
+                            <h3>Fraud Alerts</h3>
+                            <span class="metric-value">23</span>
+                            <span class="metric-change negative">+3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Transaction Volume (7 days)</h3>
+                        <div class="chart-placeholder">
+                            <canvas id="transactionChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3>Customer Growth</h3>
+                        <div class="chart-placeholder">
+                            <canvas id="customerChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h3>Recent Activity</h3>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon success">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p>Large withdrawal approved for account #****1234</p>
+                                <span class="activity-time">2 minutes ago</span>
+                            </div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-icon warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p>Fraud alert triggered for suspicious activity</p>
+                                <span class="activity-time">15 minutes ago</span>
+                            </div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-icon info">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p>New customer registration: John Smith</p>
+                                <span class="activity-time">1 hour ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Customer Management Section -->
+            <section id="customers" class="dashboard-section">
+                <div class="section-header">
+                    <h2>Customer Management</h2>
+                    <div class="section-actions">
+                        <input type="text" placeholder="Search customers..." class="search-input">
+                        <button class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Add Customer
+                        </button>
+                    </div>
+                </div>
+
+                <div class="customers-grid">
+                    <div class="customer-card">
+                        <div class="customer-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="customer-info">
+                            <h4>Sarah Johnson</h4>
+                            <p>Account: ****5678</p>
+                            <p>Balance: $45,230.50</p>
+                            <span class="status active">Active</span>
+                        </div>
+                        <div class="customer-actions">
+                            <button class="btn-sm">View</button>
+                            <button class="btn-sm">Edit</button>
+                        </div>
+                    </div>
+
+                    <div class="customer-card">
+                        <div class="customer-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="customer-info">
+                            <h4>Michael Chen</h4>
+                            <p>Account: ****9012</p>
+                            <p>Balance: $78,945.20</p>
+                            <span class="status active">Active</span>
+                        </div>
+                        <div class="customer-actions">
+                            <button class="btn-sm">View</button>
+                            <button class="btn-sm">Edit</button>
+                        </div>
+                    </div>
+
+                    <div class="customer-card">
+                        <div class="customer-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="customer-info">
+                            <h4>Emily Rodriguez</h4>
+                            <p>Account: ****3456</p>
+                            <p>Balance: $12,340.75</p>
+                            <span class="status suspended">Suspended</span>
+                        </div>
+                        <div class="customer-actions">
+                            <button class="btn-sm">View</button>
+                            <button class="btn-sm">Reactivate</button>
+                        </div>
+                    </div>
+
+                    <div class="customer-card">
+                        <div class="customer-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="customer-info">
+                            <h4>David Thompson</h4>
+                            <p>Account: ****7890</p>
+                            <p>Balance: $156,780.90</p>
+                            <span class="status active">Active</span>
+                        </div>
+                        <div class="customer-actions">
+                            <button class="btn-sm">View</button>
+                            <button class="btn-sm">Edit</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transactions Section -->
+            <section id="transactions" class="dashboard-section">
+                <div class="section-header">
+                    <h2>Transaction Monitoring</h2>
+                    <div class="section-actions">
+                        <select class="filter-select">
+                            <option>All Transactions</option>
+                            <option>Pending</option>
+                            <option>Completed</option>
+                            <option>Failed</option>
+                        </select>
+                        <input type="date" class="date-input">
+                    </div>
+                </div>
+
+                <div class="transactions-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Customer</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>TXN-2024-001</td>
+                                <td>Sarah Johnson</td>
+                                <td>Wire Transfer</td>
+                                <td>$5,000.00</td>
+                                <td><span class="status completed">Completed</span></td>
+                                <td>10:23 AM</td>
+                                <td><button class="btn-sm">View Details</button></td>
+                            </tr>
+                            <tr>
+                                <td>TXN-2024-002</td>
+                                <td>Michael Chen</td>
+                                <td>ATM Withdrawal</td>
+                                <td>$500.00</td>
+                                <td><span class="status completed">Completed</span></td>
+                                <td>10:18 AM</td>
+                                <td><button class="btn-sm">View Details</button></td>
+                            </tr>
+                            <tr>
+                                <td>TXN-2024-003</td>
+                                <td>Emily Rodriguez</td>
+                                <td>Online Purchase</td>
+                                <td>$127.50</td>
+                                <td><span class="status pending">Pending Review</span></td>
+                                <td>10:15 AM</td>
+                                <td><button class="btn-sm">Approve</button></td>
+                            </tr>
+                            <tr>
+                                <td>TXN-2024-004</td>
+                                <td>David Thompson</td>
+                                <td>Deposit</td>
+                                <td>$2,500.00</td>
+                                <td><span class="status completed">Completed</span></td>
+                                <td>10:12 AM</td>
+                                <td><button class="btn-sm">View Details</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Fraud Detection Section -->
+            <section id="fraud" class="dashboard-section">
+                <div class="section-header">
+                    <h2>Fraud Detection & Alerts</h2>
+                    <div class="section-actions">
+                        <button class="btn-secondary">
+                            <i class="fas fa-cog"></i>
+                            Configure Rules
+                        </button>
+                    </div>
+                </div>
+
+                <div class="fraud-alerts">
+                    <div class="alert-card high">
+                        <div class="alert-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <h4>High Risk Transaction</h4>
+                            <p>Multiple large withdrawals detected for account ****5678</p>
+                            <div class="alert-details">
+                                <span>Amount: $15,000</span>
+                                <span>Location: International</span>
+                                <span>Time: 9:45 AM</span>
+                            </div>
+                        </div>
+                        <div class="alert-actions">
+                            <button class="btn-danger">Block</button>
+                            <button class="btn-warning">Investigate</button>
+                            <button class="btn-success">Approve</button>
+                        </div>
+                    </div>
+
+                    <div class="alert-card medium">
+                        <div class="alert-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="alert-content">
+                            <h4>Unusual Spending Pattern</h4>
+                            <p>Account ****9012 shows atypical purchasing behavior</p>
+                            <div class="alert-details">
+                                <span>Pattern: 3x normal rate</span>
+                                <span>Category: Electronics</span>
+                                <span>Time: 8:30 AM</span>
+                            </div>
+                        </div>
+                        <div class="alert-actions">
+                            <button class="btn-warning">Investigate</button>
+                            <button class="btn-success">Approve</button>
+                        </div>
+                    </div>
+
+                    <div class="alert-card low">
+                        <div class="alert-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <h4>New Device Login</h4>
+                            <p>Account ****3456 accessed from new device</p>
+                            <div class="alert-details">
+                                <span>Device: iPhone 15</span>
+                                <span>Location: New York</span>
+                                <span>Time: 7:20 AM</span>
+                            </div>
+                        </div>
+                        <div class="alert-actions">
+                            <button class="btn-success">Approve</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fraud-stats">
+                    <div class="stat-card">
+                        <h4>Fraud Prevention Rate</h4>
+                        <div class="stat-value">98.7%</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>False Positives</h4>
+                        <div class="stat-value">2.3%</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Blocked Transactions</h4>
+                        <div class="stat-value">47</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Health Section -->
+            <section id="system" class="dashboard-section">
+                <div class="section-header">
+                    <h2>System Health & Monitoring</h2>
+                    <div class="section-actions">
+                        <button class="btn-secondary">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="system-metrics">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-server"></i>
+                        </div>
+                        <div class="metric-info">
+                            <h3>Database Performance</h3>
+                            <span class="metric-value">99.8%</span>
+                            <span class="metric-change positive">Excellent</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-network-wired"></i>
+                        </div>
+                        <div class="metric-info">
+                            <h3>API Response Time</h3>
+                            <span class="metric-value">45ms</span>
+                            <span class="metric-change positive">Good</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-memory"></i>
+                        </div>
+                        <div class="metric-info">
+                            <h3>Memory Usage</h3>
+                            <span class="metric-value">67%</span>
+                            <span class="metric-change neutral">Normal</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-hdd"></i>
+                        </div>
+                        <div class="metric-info">
+                            <h3>Storage</h3>
+                            <span class="metric-value">78%</span>
+                            <span class="metric-change warning">Monitor</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="system-logs">
+                    <h3>Recent System Events</h3>
+                    <div class="log-list">
+                        <div class="log-item info">
+                            <span class="log-time">10:30:15</span>
+                            <span class="log-message">Database backup completed successfully</span>
+                        </div>
+                        <div class="log-item warning">
+                            <span class="log-time">10:25:42</span>
+                            <span class="log-message">High CPU usage detected on server-02</span>
+                        </div>
+                        <div class="log-item success">
+                            <span class="log-time">10:20:18</span>
+                            <span class="log-message">Security patch applied to core systems</span>
+                        </div>
+                        <div class="log-item info">
+                            <span class="log-time">10:15:33</span>
+                            <span class="log-message">Scheduled maintenance completed</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.skypack.dev/@supabase/supabase-js@2"></script>
+    <!-- Configuration (optional - create config.js with your settings) -->
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

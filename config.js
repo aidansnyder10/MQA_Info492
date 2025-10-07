@@ -4,8 +4,8 @@
 window.SecureBankConfig = {
     // Supabase Configuration
     supabase: {
-        url: 'YOUR_SUPABASE_URL', // e.g., 'https://your-project.supabase.co'
-        anonKey: 'YOUR_SUPABASE_ANON_KEY' // Your Supabase anon/public key
+        url: 'https://cumodtrxkqakvjandlsw.supabase.co',
+        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1bW9kdHJ4a3Fha3ZqYW5kbHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4NTM3MzYsImV4cCI6MjA3NTQyOTczNn0.jFdUMilPEv_Yc2EYTFisRzlbFmo_9kcl7A_2xwIQ6cU'
     },
     
     // Admin Credentials (for demo purposes)
@@ -24,7 +24,7 @@ window.SecureBankConfig = {
     
     // Demo Data Settings
     demo: {
-        enabled: true, // Set to false when using real Supabase data
+        enabled: false, // Set to false when using real Supabase data
         autoRefresh: 30000 // Auto-refresh demo data every 30 seconds
     }
 }

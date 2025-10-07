@@ -21,8 +21,13 @@ const config = window.SecureBankConfig || {
 let supabase = null
 if (config.supabase.url !== 'YOUR_SUPABASE_URL' && config.supabase.anonKey !== 'YOUR_SUPABASE_ANON_KEY') {
     try {
-        supabase = window.supabase.createClient(config.supabase.url, config.supabase.anonKey)
-        console.log('Supabase client initialized successfully')
+        // Wait for Supabase to load
+        if (typeof window.supabase !== 'undefined') {
+            supabase = window.supabase.createClient(config.supabase.url, config.supabase.anonKey)
+            console.log('Supabase client initialized successfully')
+        } else {
+            console.log('Supabase library not loaded - running in demo mode')
+        }
     } catch (error) {
         console.error('Failed to initialize Supabase client:', error)
     }
@@ -50,9 +55,12 @@ const navItems = document.querySelectorAll('.dashboard-nav li')
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
-    initializeApp()
-    setupEventListeners()
-    loadDashboardData()
+    // Wait a bit for Supabase to load, then initialize
+    setTimeout(() => {
+        initializeApp()
+        setupEventListeners()
+        loadDashboardData()
+    }, 100)
 })
 
 function initializeApp() {

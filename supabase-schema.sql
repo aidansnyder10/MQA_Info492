@@ -231,3 +231,158 @@ LEFT JOIN customers c ON t.customer_id = c.id;
 -- Grant permissions on the view
 GRANT SELECT ON transaction_details TO authenticated;
 GRANT SELECT ON transaction_details TO anon;
+
+-- Create admin_emails table for email portal
+CREATE TABLE IF NOT EXISTS admin_emails (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    sender VARCHAR(255) NOT NULL,
+    sender_email VARCHAR(255) NOT NULL,
+    recipient_email VARCHAR(255) DEFAULT 'admin@securebank.com',
+    subject VARCHAR(500) NOT NULL,
+    preview TEXT,
+    body TEXT NOT NULL,
+    read BOOLEAN DEFAULT false,
+    priority VARCHAR(20) DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'critical')),
+    category VARCHAR(50) DEFAULT 'general' CHECK (category IN ('general', 'fraud', 'system', 'customer', 'compliance')),
+    attachments JSONB DEFAULT '[]'::jsonb,
+    sent BOOLEAN DEFAULT false,
+    draft BOOLEAN DEFAULT false,
+    archived BOOLEAN DEFAULT false,
+    deleted BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create index for admin_emails
+CREATE INDEX IF NOT EXISTS idx_admin_emails_recipient ON admin_emails(recipient_email);
+CREATE INDEX IF NOT EXISTS idx_admin_emails_category ON admin_emails(category);
+CREATE INDEX IF NOT EXISTS idx_admin_emails_read ON admin_emails(read);
+CREATE INDEX IF NOT EXISTS idx_admin_emails_created_at ON admin_emails(created_at);
+
+-- Insert sample emails
+INSERT INTO admin_emails (sender, sender_email, subject, preview, body, read, priority, category, attachments) VALUES
+('Security Team', 'security@securebank.com', 'URGENT: Multiple Failed Login Attempts Detected', 'We have detected 5 failed login attempts on account ****1234 within the last 10 minutes...', 'Dear Admin,
+
+We have detected multiple failed login attempts on customer account ****1234 within the last 10 minutes. This could indicate a potential security breach or brute force attack.
+
+Details:
+- Account: ****1234 (Sarah Johnson)
+- Failed attempts: 5
+- Time period: Last 10 minutes
+- IP Address: 192.168.1.100
+- Location: New York, NY
+
+Recommended actions:
+1. Temporarily lock the account
+2. Contact the customer to verify legitimacy
+3. Review recent transaction activity
+4. Consider additional security measures
+
+Please review and take appropriate action.
+
+Best regards,
+Security Team
+SecureBank', false, 'high', 'fraud', '[]'::jsonb),
+
+('Compliance Department', 'compliance@securebank.com', 'Monthly Compliance Report - January 2024', 'Please find attached the monthly compliance report for January 2024. All regulatory requirements...', 'Dear Admin,
+
+Please find attached the monthly compliance report for January 2024. All regulatory requirements have been met and documented.
+
+Key highlights:
+- AML compliance: 100%
+- KYC verification: 98.5%
+- Transaction monitoring: Active
+- Suspicious activity reports: 3 filed
+- Regulatory updates: 2 implemented
+
+Please review the attached report and confirm receipt.
+
+Regards,
+Compliance Department
+SecureBank', true, 'medium', 'compliance', '[{"name": "Compliance_Report_Jan2024.pdf", "size": "2.3 MB"}]'::jsonb),
+
+('Customer Support', 'support@securebank.com', 'Customer Complaint - Account Suspension', 'Customer Michael Chen has filed a complaint regarding the suspension of his account ****9012...', 'Dear Admin,
+
+Customer Michael Chen has filed a formal complaint regarding the suspension of his account ****9012. 
+
+Customer details:
+- Name: Michael Chen
+- Account: ****9012
+- Suspension date: 2024-01-19
+- Reason: Unusual transaction pattern
+
+Customer''s complaint:
+"The suspension of my account is unjustified. I was making legitimate purchases for my business and the transactions were within my normal spending patterns. I need immediate access to my funds."
+
+Support team recommendation:
+- Review transaction history
+- Verify customer''s business documentation
+- Consider temporary account reactivation with monitoring
+
+Please review and provide guidance on resolution.
+
+Best regards,
+Customer Support Team
+SecureBank', false, 'high', 'customer', '[]'::jsonb),
+
+('System Administrator', 'sysadmin@securebank.com', 'Scheduled Maintenance - Database Upgrade', 'Scheduled maintenance window for database upgrade has been confirmed for Sunday, February 4th...', 'Dear Admin,
+
+Scheduled maintenance window for database upgrade has been confirmed.
+
+Maintenance details:
+- Date: Sunday, February 4th, 2024
+- Time: 2:00 AM - 6:00 AM EST
+- Duration: 4 hours
+- Impact: All online services will be unavailable
+- Backup systems: Activated
+
+Services affected:
+- Online banking portal
+- Mobile app
+- API services
+- Customer support portal
+
+Customer notifications:
+- Email notifications sent
+- Website banner posted
+- Mobile app notification scheduled
+
+Please ensure all critical processes are completed before maintenance window.
+
+Regards,
+System Administrator
+SecureBank', true, 'medium', 'system', '[]'::jsonb),
+
+('Fraud Detection Team', 'fraud@securebank.com', 'Fraud Alert: Suspicious Wire Transfer', 'High-risk wire transfer detected for account ****5678. Amount: $15,000 to international destination...', 'Dear Admin,
+
+High-risk wire transfer detected requiring immediate review.
+
+Transaction details:
+- Account: ****5678 (Sarah Johnson)
+- Amount: $15,000.00
+- Destination: International (Country: Unknown)
+- Time: 2024-01-20 14:23:15
+- Risk score: 95/100
+
+Risk factors:
+- Unusual destination country
+- Amount exceeds normal transaction patterns
+- No prior international transfers
+- Customer not responding to verification calls
+
+Recommended action:
+- BLOCK transaction pending verification
+- Contact customer immediately
+- Review account for additional suspicious activity
+
+This requires immediate attention.
+
+Best regards,
+Fraud Detection Team
+SecureBank', false, 'high', 'fraud', '[]'::jsonb);
+
+-- Disable RLS for admin_emails table
+ALTER TABLE admin_emails DISABLE ROW LEVEL SECURITY;
+
+-- Create trigger for updated_at
+CREATE TRIGGER update_admin_emails_updated_at BEFORE UPDATE ON admin_emails FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

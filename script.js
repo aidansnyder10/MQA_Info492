@@ -35,7 +35,7 @@ if (config.supabase.url !== 'YOUR_SUPABASE_URL' && config.supabase.anonKey !== '
     console.log('Supabase not configured - running in demo mode')
 }
 
-// Demo credentials for both admin and user
+// Demo credentials for admin, user, and business
 const DEMO_CREDENTIALS = {
     admin: {
         email: 'admin@securebank.com',
@@ -46,6 +46,11 @@ const DEMO_CREDENTIALS = {
         email: 'user@securebank.com',
         password: 'UserSecure2024!',
         mfa: '654321'
+    },
+    business: {
+        email: 'business@securebank.com',
+        password: 'BusinessSecure2024!',
+        mfa: '246810'
     }
 }
 
@@ -149,6 +154,14 @@ async function handleLogin(e) {
             
             // Redirect to customer dashboard
             window.location.href = 'customer-dashboard.html'
+            
+        // Check business credentials
+        } else if (email === DEMO_CREDENTIALS.business.email && 
+                   password === DEMO_CREDENTIALS.business.password && 
+                   mfa === DEMO_CREDENTIALS.business.mfa) {
+            
+            // Redirect to business dashboard
+            window.location.href = 'business-dashboard.html'
             
         } else {
             throw new Error('Invalid credentials')

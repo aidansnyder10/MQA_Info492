@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureBank Customer Portal</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="header-left">
+                <i class="fas fa-university"></i>
+                <h1>SecureBank Customer Portal</h1>
+            </div>
+            <div class="header-right">
+                <span class="admin-info">
+                    <i class="fas fa-user"></i>
+                    user@securebank.com
+                </span>
+                <button class="email-btn" onclick="window.open('email-portal.html', '_blank')">
+                    <i class="fas fa-envelope"></i>
+                    Email Portal
+                </button>
+                <button id="logoutBtn" class="logout-btn" onclick="window.location.href='index.html'">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </header>
+
+        <nav class="dashboard-nav">
+            <ul>
+                <li class="active" data-section="overview">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Overview
+                </li>
+                <li data-section="actions">
+                    <i class="fas fa-bolt"></i>
+                    Quick Actions
+                </li>
+                <li data-section="transactions">
+                    <i class="fas fa-exchange-alt"></i>
+                    Transactions
+                </li>
+                <li data-section="notifications">
+                    <i class="fas fa-bell"></i>
+                    Notifications
+                </li>
+            </ul>
+        </nav>
+
+        <main class="dashboard-content">
+            <!-- Overview Section -->
+            <section id="overview" class="dashboard-section active">
+                <h2>Account Overview</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="metric-info">
+                            <h3>Account Number</h3>
+                            <span class="metric-value">****4321</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="metric-info">
+                            <h3>Current Balance</h3>
+                            <span class="metric-value">$3,250.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="metric-info">
+                            <h3>Savings Account Balance</h3>
+                            <span class="metric-value">$8,450.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <p style="color: #666; margin-bottom: 30px; font-size: 1rem;">Welcome back, user@securebank.com. Here's a quick overview of your accounts and recent activity.</p>
+                
+                <div class="chart-card">
+                    <h3>Spending Overview (7 Days)</h3>
+                    <div class="chart-placeholder">
+                        <i class="fas fa-chart-line" style="font-size: 2rem; color: #667eea;"></i>
+                        <p>Chart will be rendered here</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions Section -->
+            <section id="actions" class="dashboard-section">
+                <h2>Quick Actions</h2>
+                <div class="actions-container">
+                    <button class="btn-primary" onclick="transferToSavings()">
+                        <i class="fas fa-piggy-bank"></i>
+                        Transfer $50 to Savings
+                    </button>
+                    <button class="btn-secondary" onclick="payBill()">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        Pay $25 Bill
+                    </button>
+                </div>
+                <p style="color: #666; margin: 20px 0; font-size: 0.95rem;">Perform quick transfers or payments. Actions will update your balance and transaction history instantly.</p>
+                <div style="margin-top: 20px;">
+                    <button class="btn-sm" onclick="window.location.href='#'" style="background: #f8f9fa; color: #333; border: 1px solid #dee2e6;">
+                        <i class="fas fa-list"></i>
+                        View All Accounts
+                    </button>
+                </div>
+            </section>
+
+            <!-- Transactions Section -->
+            <section id="transactions" class="dashboard-section">
+                <div class="section-header">
+                    <h2>Recent Transactions</h2>
+                    <div class="section-actions">
+                        <select class="filter-select">
+                            <option>All</option>
+                            <option>Deposits</option>
+                            <option>Withdrawals</option>
+                            <option>Payments</option>
+                        </select>
+                        <input type="text" placeholder="Search transactions..." class="search-input">
+                    </div>
+                </div>
+                <div class="transactions-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Dec 15, 2024</td>
+                                <td>Direct Deposit - Salary</td>
+                                <td>+$2,500.00</td>
+                            </tr>
+                            <tr>
+                                <td>Dec 14, 2024</td>
+                                <td>Online Purchase - Amazon</td>
+                                <td>-$89.99</td>
+                            </tr>
+                            <tr>
+                                <td>Dec 13, 2024</td>
+                                <td>ATM Withdrawal</td>
+                                <td>-$100.00</td>
+                            </tr>
+                            <tr>
+                                <td>Dec 12, 2024</td>
+                                <td>Transfer to Savings</td>
+                                <td>-$200.00</td>
+                            </tr>
+                            <tr>
+                                <td>Dec 11, 2024</td>
+                                <td>Grocery Store Purchase</td>
+                                <td>-$67.45</td>
+                            </tr>
+                            <tr>
+                                <td>Dec 10, 2024</td>
+                                <td>Transfer to Checking</td>
+                                <td>+$150.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="summary-note" style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; color: #666; font-size: 0.9rem;">
+                    <i class="fas fa-info-circle"></i>
+                    Showing last 6 transactions. For full history, visit the Transactions page.
+                </div>
+            </section>
+            
+            <!-- Notifications Section -->
+            <section id="notifications" class="dashboard-section">
+                <h2>Recent Alerts & Notifications</h2>
+                <div class="recent-activity">
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon success">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p>Payment processed successfully - $89.99 to Amazon</p>
+                                <span class="activity-time">2 hours ago</span>
+                            </div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-icon warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p>Unusual login detected from new device</p>
+                                <span class="activity-time">1 day ago</span>
+                            </div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-icon info">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p>Credit card bill due in 3 days - $245.67</p>
+                                <span class="activity-time">2 days ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="customer-dashboard.js"></script>
+</body>
+</html>

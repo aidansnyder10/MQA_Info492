@@ -35,8 +35,19 @@ if (config.supabase.url !== 'YOUR_SUPABASE_URL' && config.supabase.anonKey !== '
     console.log('Supabase not configured - running in demo mode')
 }
 
-// Admin credentials from config
-const FAKE_ADMIN_CREDENTIALS = config.adminCredentials
+// Demo credentials for both admin and user
+const DEMO_CREDENTIALS = {
+    admin: {
+        email: 'admin@securebank.com',
+        password: 'AdminSecure2024!',
+        mfa: '123456'
+    },
+    user: {
+        email: 'user@securebank.com',
+        password: 'UserSecure2024!',
+        mfa: '654321'
+    }
+}
 
 // Global state
 let currentUser = null
@@ -105,12 +116,12 @@ async function handleLogin(e) {
         // Simulate authentication delay
         await new Promise(resolve => setTimeout(resolve, 1500))
         
-        // Check fake credentials
-        if (email === FAKE_ADMIN_CREDENTIALS.email && 
-            password === FAKE_ADMIN_CREDENTIALS.password && 
-            mfa === FAKE_ADMIN_CREDENTIALS.mfa) {
+        // Check admin credentials
+        if (email === DEMO_CREDENTIALS.admin.email && 
+            password === DEMO_CREDENTIALS.admin.password && 
+            mfa === DEMO_CREDENTIALS.admin.mfa) {
             
-            // Create fake user session
+            // Create admin user session
             currentUser = {
                 id: 'admin_001',
                 email: email,
@@ -130,11 +141,20 @@ async function handleLogin(e) {
             })
             
             showDashboard()
+            
+        // Check user credentials
+        } else if (email === DEMO_CREDENTIALS.user.email && 
+                   password === DEMO_CREDENTIALS.user.password && 
+                   mfa === DEMO_CREDENTIALS.user.mfa) {
+            
+            // Redirect to customer dashboard
+            window.location.href = 'customer-dashboard.html'
+            
         } else {
             throw new Error('Invalid credentials')
         }
     } catch (error) {
-        alert('Invalid credentials. Please check your email, password, and 2FA code.')
+        alert('Invalid credentials. Please check and try again.')
         console.error('Login error:', error)
     } finally {
         // Reset button state

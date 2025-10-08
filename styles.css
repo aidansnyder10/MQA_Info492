@@ -123,6 +123,52 @@ body {
     font-size: 1.2rem;
 }
 
+/* Demo Credentials */
+.demo-credentials {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.demo-credentials h4 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.credential-set {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.credential-set:last-child {
+    margin-bottom: 0;
+}
+
+.credential-set h5 {
+    color: #667eea;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.credential-set p {
+    margin: 3px 0;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.credential-set strong {
+    color: #333;
+}
+
 /* Dashboard Styles */
 .dashboard-container {
     background: #f5f7fa;
@@ -762,6 +808,32 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
     margin-bottom: 30px;
+}
+
+/* Actions Container */
+.actions-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.actions-container button {
+    flex: 1;
+    min-width: 200px;
+    padding: 20px;
+    font-size: 1.1rem;
+    justify-content: center;
+}
+
+/* Summary Note */
+.summary-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.summary-note i {
+    color: #667eea;
 }
 
 /* System Logs */

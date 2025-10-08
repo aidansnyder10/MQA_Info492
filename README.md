@@ -15,9 +15,15 @@ A realistic fake digital bank admin dashboard built with HTML, CSS, JavaScript, 
 
 ## Demo Login Credentials
 
+### Admin Portal
 - **Email**: admin@securebank.com
 - **Password**: AdminSecure2024!
 - **2FA Code**: 123456
+
+### Customer Portal
+- **Email:** `user@securebank.com`  
+- **Password:** `UserSecure2024!`  
+- **2FA Code:** `654321`  
 
 ## Quick Start
 

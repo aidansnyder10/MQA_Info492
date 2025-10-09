@@ -24,7 +24,7 @@ window.SecureBankConfig = {
     
     // Demo Data Settings
     demo: {
-        enabled: false, // Set to false when using real Supabase data
+        enabled: true, // Set to true for demo mode with sample data
         autoRefresh: 30000 // Auto-refresh demo data every 30 seconds
     }
 }

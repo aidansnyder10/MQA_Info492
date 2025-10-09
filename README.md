@@ -28,7 +28,12 @@ A realistic fake digital bank admin dashboard built with HTML, CSS, JavaScript, 
 ### Business Customer Portal
 - **Email:** business@securebank.com
 - **Password:** BusinessSecure2024!
-- **2FA Code:** 246810 
+- **2FA Code:** 246810
+
+### Support Representative Portal
+- **Email:** support@securebank.com
+- **Password:** SupportSecure2024!
+- **2FA Code:** 789012 
 
 ## Quick Start
 

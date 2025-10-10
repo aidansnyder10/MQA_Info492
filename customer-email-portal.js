@@ -133,16 +133,6 @@ function showEmail(emailId) {
     event.currentTarget.classList.remove('unread');
     
     // Display email content
-    let warningBanner = '';
-    if (emailId === 'phishing') {
-        warningBanner = `
-            <div class="warning-banner">
-                <i class="fas fa-exclamation-triangle"></i>
-                ⚠️ Suspicious sender domain: support@securebank.co (not securebank.com)
-            </div>
-        `;
-    }
-    
     emailBody.innerHTML = `
         <div class="email-header-detail">
             <div class="email-subject-detail">${email.subject}</div>
@@ -155,8 +145,6 @@ function showEmail(emailId) {
                 <div class="email-date">${email.date}</div>
             </div>
         </div>
-        
-        ${warningBanner}
         
         <div style="white-space: pre-line; line-height: 1.6; color: #333;">
             ${email.content}

@@ -16,27 +16,54 @@
                 <p>Administrative Portal</p>
             </div>
             
-            <form id="loginForm" class="login-form">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="mfa">2FA Code</label>
-                    <input type="text" id="mfa" name="mfa" placeholder="6-digit code" maxlength="6" required>
-                </div>
-                
-                <button type="submit" class="login-btn">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Access Admin Portal
+            <!-- Demo Selection Tabs -->
+            <div class="demo-tabs">
+                <button class="tab-btn active" onclick="switchDemo('demo1')">
+                    <i class="fas fa-users"></i>
+                    Demo 1 - Original Portals
                 </button>
-            </form>
+                <button class="tab-btn" onclick="switchDemo('demo2')">
+                    <i class="fas fa-flask"></i>
+                    Demo 2 - AI Experiment
+                </button>
+            </div>
+
+            <!-- Demo 1 Content -->
+            <div id="demo1-content" class="demo-content active">
+                <form id="loginForm" class="login-form">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mfa">2FA Code</label>
+                        <input type="text" id="mfa" name="mfa" placeholder="6-digit code" maxlength="6" required>
+                    </div>
+                    
+                    <button type="submit" class="login-btn">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Access Admin Portal
+                    </button>
+                </form>
+            </div>
+
+            <!-- Demo 2 Content -->
+            <div id="demo2-content" class="demo-content">
+                <div class="demo-description">
+                    <h3>AI Attack Experiment</h3>
+                    <p>This demo simulates AI agents performing institutional attacks against business banking systems.</p>
+                </div>
+                <button type="button" class="demo-btn" onclick="window.location.href='demo2-business-dashboard.html'">
+                    <i class="fas fa-flask"></i>
+                    Launch AI Experiment
+                </button>
+            </div>
             
             <div class="security-notice">
                 <i class="fas fa-shield-alt"></i>
@@ -45,29 +72,43 @@
             
             <div class="demo-credentials">
                 <h4>Demo Credentials</h4>
-                <div class="credential-set">
-                    <h5>Admin Portal:</h5>
-                    <p><strong>Email:</strong> admin@securebank.com</p>
-                    <p><strong>Password:</strong> AdminSecure2024!</p>
-                    <p><strong>2FA:</strong> 123456</p>
+                
+                <div class="credentials-section">
+                    <h5>Demo 1 - Original Portals</h5>
+                    <div class="credential-set">
+                        <h6>Admin Portal:</h6>
+                        <p><strong>Email:</strong> admin@securebank.com</p>
+                        <p><strong>Password:</strong> AdminSecure2024!</p>
+                        <p><strong>2FA:</strong> 123456</p>
+                    </div>
+                    <div class="credential-set">
+                        <h6>Customer Portal:</h6>
+                        <p><strong>Email:</strong> user@securebank.com</p>
+                        <p><strong>Password:</strong> UserSecure2024!</p>
+                        <p><strong>2FA:</strong> 654321</p>
+                    </div>
+                    <div class="credential-set">
+                        <h6>Business Customer Portal:</h6>
+                        <p><strong>Email:</strong> business@securebank.com</p>
+                        <p><strong>Password:</strong> BusinessSecure2024!</p>
+                        <p><strong>2FA:</strong> 246810</p>
+                    </div>
+                    <div class="credential-set">
+                        <h6>Support Representative Portal:</h6>
+                        <p><strong>Email:</strong> support@securebank.com</p>
+                        <p><strong>Password:</strong> SupportSecure2024!</p>
+                        <p><strong>2FA:</strong> 789012</p>
+                    </div>
                 </div>
-                <div class="credential-set">
-                    <h5>Customer Portal:</h5>
-                    <p><strong>Email:</strong> user@securebank.com</p>
-                    <p><strong>Password:</strong> UserSecure2024!</p>
-                    <p><strong>2FA:</strong> 654321</p>
-                </div>
-                <div class="credential-set">
-                    <h5>Business Customer Portal:</h5>
-                    <p><strong>Email:</strong> business@securebank.com</p>
-                    <p><strong>Password:</strong> BusinessSecure2024!</p>
-                    <p><strong>2FA:</strong> 246810</p>
-                </div>
-                <div class="credential-set">
-                    <h5>Support Representative Portal:</h5>
-                    <p><strong>Email:</strong> support@securebank.com</p>
-                    <p><strong>Password:</strong> SupportSecure2024!</p>
-                    <p><strong>2FA:</strong> 789012</p>
+                
+                <div class="credentials-section">
+                    <h5>Demo 2 - AI Experiment</h5>
+                    <div class="credential-set">
+                        <h6>Business Admin Portal:</h6>
+                        <p><strong>Email:</strong> business@securebank.com</p>
+                        <p><strong>Password:</strong> BusinessSecure2024!</p>
+                        <p><strong>2FA:</strong> 246810</p>
+                    </div>
                 </div>
             </div>
         </div>

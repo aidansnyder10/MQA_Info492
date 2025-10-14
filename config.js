@@ -26,6 +26,31 @@ window.SecureBankConfig = {
     demo: {
         enabled: true, // Set to true for demo mode with sample data
         autoRefresh: 30000 // Auto-refresh demo data every 30 seconds
+    },
+    
+    // AI/LLM Configuration for Demo 2
+    ai: {
+        huggingFace: {
+            apiUrl: 'https://api-inference.huggingface.co/models/',
+            // Free models available without API key for basic usage
+            models: {
+                'microsoft/DialoGPT-medium': 'Conversational AI',
+                'gpt2': 'Text Generation',
+                'distilbert-base-uncased': 'Text Classification',
+                'microsoft/DialoGPT-large': 'Advanced Conversational AI'
+            },
+            defaultModel: 'microsoft/DialoGPT-medium',
+            // Optional: Add your free Hugging Face token for higher rate limits
+            // Get free token at: https://huggingface.co/settings/tokens
+            token: '', // Leave empty for basic free usage
+            maxTokens: 150,
+            temperature: 0.7
+        },
+        attack: {
+            maxAttempts: 3,
+            timeout: 15000, // 15 seconds
+            retryDelay: 2000 // 2 seconds
+        }
     }
 }
 

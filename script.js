@@ -698,3 +698,14 @@ document.addEventListener('DOMContentLoaded', function() {
         setupRealtimeUpdates()
     }
 })
+
+// Demo tab switching function
+function switchDemo(demoType) {
+    // Remove active class from all tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.demo-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to selected tab
+    event.target.classList.add('active');
+    document.getElementById(demoType + '-content').classList.add('active');
+}

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo 2 - Business Email Portal</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .email-portal { background: #f5f7fa; min-height: 100vh; padding: 20px; }
+        .email-header { background: white; padding: 20px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-radius: 10px; }
+        .email-nav { background: white; padding: 15px 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .email-nav ul { list-style: none; display: flex; gap: 30px; margin: 0; padding: 0; }
+        .email-nav li { cursor: pointer; padding: 10px 15px; border-radius: 8px; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; color: #666; font-weight: 500; }
+        .email-nav li:hover, .email-nav li.active { background: #667eea; color: white; }
+        .email-nav li .badge { background: #dc3545; color: white; border-radius: 12px; padding: 2px 8px; font-size: 0.7rem; font-weight: 600; }
+        .email-container { display: grid; grid-template-columns: 300px 1fr; gap: 20px; height: calc(100vh - 200px); }
+        .email-sidebar { background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; }
+        .email-search { padding: 20px; border-bottom: 1px solid #f0f0f0; }
+        .email-search input { width: 100%; padding: 10px 15px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 0.9rem; }
+        .email-list { flex: 1; overflow-y: auto; }
+        .email-item { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 15px; }
+        .email-item:hover { background: #f8f9fa; }
+        .email-item.unread { background: #f0f8ff; border-left: 4px solid #667eea; }
+        .email-item.selected { background: #e3f2fd; }
+        .email-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.9rem; }
+        .email-content { flex: 1; min-width: 0; }
+        .email-sender { font-weight: 600; color: #333; margin-bottom: 4px; }
+        .email-subject { font-weight: 500; color: #555; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .email-preview { font-size: 0.8rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .email-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .email-time { font-size: 0.7rem; color: #888; }
+        .email-priority { width: 8px; height: 8px; border-radius: 50%; background: #28a745; }
+        .email-priority.high { background: #dc3545; }
+        .email-priority.medium { background: #ffc107; }
+        .email-main { background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; overflow: hidden; }
+        .email-toolbar { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+        .email-body { flex: 1; padding: 20px; overflow-y: auto; }
+        .email-header-detail { border-bottom: 1px solid #f0f0f0; padding: 20px; margin-bottom: 20px; }
+        .email-subject-detail { font-size: 1.5rem; font-weight: 600; color: #333; margin-bottom: 10px; }
+        .email-sender-detail { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .email-date { color: #666; font-size: 0.9rem; }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #666; text-align: center; }
+        .compose-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .compose-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102,126,234,0.3); }
+        @media (max-width: 768px) { .email-container { grid-template-columns: 1fr; height: auto; } .email-sidebar { height: 300px; } }
+    </style>
+    
+</head>
+<body>
+    <div class="email-portal">
+        <header class="email-header">
+            <div class="header-left">
+                <i class="fas fa-building"></i>
+                <h1>Demo 2 - Business Email</h1>
+                <span class="admin-info">
+                    <i class="fas fa-user-tie"></i>
+                    business@securebank.com
+                </span>
+            </div>
+            <div class="header-right">
+                <button class="compose-btn" onclick="showCompose()">
+                    <i class="fas fa-plus"></i>
+                    Compose
+                </button>
+                <button class="logout-btn" onclick="window.location.href='demo2-business-dashboard.html'">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </button>
+            </div>
+        </header>
+
+        <nav class="email-nav">
+            <ul>
+                <li class="active" data-folder="inbox">
+                    <i class="fas fa-inbox"></i>
+                    Inbox
+                    <span class="badge" id="inbox-count">5</span>
+                </li>
+                <li data-folder="ap">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    AP
+                </li>
+                <li data-folder="ar">
+                    <i class="fas fa-file-invoice"></i>
+                    AR
+                </li>
+                <li data-folder="payroll">
+                    <i class="fas fa-users"></i>
+                    Payroll
+                </li>
+                <li data-folder="alerts">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Alerts
+                    <span class="badge">2</span>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="email-container">
+            <div class="email-sidebar">
+                <div class="email-search">
+                    <input type="text" placeholder="Search emails..." id="email-search">
+                </div>
+                <div class="email-list" id="email-list"></div>
+            </div>
+            <div class="email-main">
+                <div class="email-toolbar">
+                    <div class="email-toolbar-left">
+                        <button class="btn-sm" onclick="markAsRead()"><i class="fas fa-check"></i> Mark as Read</button>
+                        <button class="btn-sm" onclick="deleteEmail()"><i class="fas fa-trash"></i> Delete</button>
+                        <button class="btn-sm" onclick="archiveEmail()"><i class="fas fa-archive"></i> Archive</button>
+                    </div>
+                    <div class="email-toolbar-right">
+                        <button class="btn-sm" onclick="replyEmail()"><i class="fas fa-reply"></i> Reply</button>
+                        <button class="btn-sm" onclick="forwardEmail()"><i class="fas fa-share"></i> Forward</button>
+                    </div>
+                </div>
+                <div class="email-body" id="email-body">
+                    <div class="empty-state">
+                        <i class="fas fa-envelope-open"></i>
+                        <h3>Select an email to read</h3>
+                        <p>Choose an email from the list to view its contents</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="demo2-business-email-portal.js"></script>
+</body>
+</html>

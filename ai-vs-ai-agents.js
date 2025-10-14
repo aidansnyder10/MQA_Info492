@@ -7,7 +7,17 @@ class AttackAI {
         this.model = model;
         this.apiUrl = this.config.apiUrl + this.model;
         this.token = this.config.token;
-        this.supabase = window.supabase;
+        
+        // Initialize Supabase client
+        if (window.supabase && window.SecureBankConfig?.supabase) {
+            this.supabase = window.supabase.createClient(
+                window.SecureBankConfig.supabase.url,
+                window.SecureBankConfig.supabase.anonKey
+            );
+        } else {
+            console.error('Supabase not available - using fallback mode');
+            this.supabase = null;
+        }
         
         // Attack strategies and data pools
         this.vendorNames = [
@@ -37,9 +47,10 @@ class AttackAI {
     
     // Generate random vendor fraud attack
     async generateVendorFraud() {
+        const amount = this.getRandomAmount(1000, 25000);
         const attackData = {
             vendorName: this.getRandomVendor(),
-            amount: this.getRandomAmount(1000, 25000),
+            amount: amount,
             description: this.getRandomDescription(),
             isNewVendor: Math.random() > 0.3, // 70% chance of new vendor
             hasPhoneNumber: Math.random() > 0.4, // 60% chance
@@ -92,10 +103,11 @@ class AttackAI {
     
     // Generate random card abuse attack
     async generateCardAbuse() {
+        const requestedLimit = this.getRandomLimit(35000, 75000);
         const attackData = {
             cardName: 'Engineering Team Card',
             currentLimit: 30000,
-            requestedLimit: this.getRandomLimit(35000, 75000),
+            requestedLimit: requestedLimit,
             justification: this.getRandomJustification(),
             requestDate: new Date().toISOString(),
             isLargeIncrease: this.isLargeIncrease(requestedLimit, 30000),
@@ -262,6 +274,11 @@ class AttackAI {
             });
             
             if (!response.ok) {
+                // Handle 404 and other errors gracefully
+                if (response.status === 404) {
+                    console.warn(`Model ${this.model} not found, using fallback reasoning`);
+                    return this.getFallbackReasoning(prompt);
+                }
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
@@ -270,7 +287,26 @@ class AttackAI {
             
         } catch (error) {
             console.error('Hugging Face API Error:', error);
-            throw error;
+            // Return fallback instead of throwing
+            return this.getFallbackReasoning(prompt);
+        }
+    }
+    
+    // Fallback reasoning when API fails
+    getFallbackReasoning(prompt) {
+        console.log('Using fallback reasoning for prompt:', prompt.substring(0, 100) + '...');
+        
+        // Generate contextual fallback reasoning based on prompt content
+        if (prompt.includes('vendor_fraud')) {
+            return 'Fallback: Selected this vendor payment approach based on typical business patterns and urgency indicators.';
+        } else if (prompt.includes('payroll_theft')) {
+            return 'Fallback: Chose this payroll modification strategy considering employee verification requirements and timing factors.';
+        } else if (prompt.includes('card_abuse')) {
+            return 'Fallback: Determined this card limit increase is justified based on team spending patterns and business needs.';
+        } else if (prompt.includes('invoice_fraud')) {
+            return 'Fallback: Selected this invoice amount based on historical vendor relationships and service complexity.';
+        } else {
+            return 'Fallback: Made decision based on standard business administration protocols and risk assessment.';
         }
     }
     
@@ -291,14 +327,30 @@ class AttackAI {
 
 class DefenderAI {
     constructor() {
-        this.supabase = window.supabase;
+        // Initialize Supabase client
+        if (window.supabase && window.SecureBankConfig?.supabase) {
+            this.supabase = window.supabase.createClient(
+                window.SecureBankConfig.supabase.url,
+                window.SecureBankConfig.supabase.anonKey
+            );
+        } else {
+            console.error('Supabase not available - using fallback mode');
+            this.supabase = null;
+        }
+        
         this.rulesCache = new Map(); // Cache rules for performance
-        console.log('DefenderAI initialized');
+        console.log('DefenderAI initialized with Supabase:', !!this.supabase);
     }
     
     // Evaluate attack using Supabase rules
     async evaluateAttack(attack) {
         try {
+            // Check if Supabase is available
+            if (!this.supabase) {
+                console.warn('Supabase not available - using fallback evaluation');
+                return this.getFallbackEvaluation(attack);
+            }
+            
             // Get rules for this scenario type
             const rules = await this.getBusinessRules(attack.scenarioType);
             
@@ -335,6 +387,53 @@ class DefenderAI {
         }
     }
     
+    // Fallback evaluation when Supabase is not available
+    getFallbackEvaluation(attack) {
+        console.log('Using fallback evaluation for attack:', attack);
+        
+        // Simple fallback rules
+        let suspicionScore = 0;
+        let reasoning = 'Fallback evaluation - ';
+        
+        switch (attack.scenarioType) {
+            case 'vendor_fraud':
+                if (attack.attackData.amount > 10000) suspicionScore -= 15;
+                if (attack.attackData.isNewVendor) suspicionScore -= 20;
+                if (attack.attackData.hasWebsite) suspicionScore += 5;
+                reasoning += 'Basic vendor fraud checks applied';
+                break;
+            case 'payroll_theft':
+                if (attack.attackData.isSameDayRequest) suspicionScore -= 25;
+                if (attack.attackData.hasVerification) suspicionScore += 20;
+                reasoning += 'Basic payroll security checks applied';
+                break;
+            case 'card_abuse':
+                if (attack.attackData.requestedLimit > 45000) suspicionScore -= 20;
+                if (attack.attackData.hasJustification) suspicionScore += 10;
+                reasoning += 'Basic card limit checks applied';
+                break;
+            case 'invoice_fraud':
+                if (attack.attackData.isInflatedAmount) suspicionScore -= 20;
+                if (attack.attackData.isHistoricalVendor) suspicionScore += 18;
+                reasoning += 'Basic invoice amount checks applied';
+                break;
+            default:
+                suspicionScore = -10; // Default suspicious
+                reasoning += 'Unknown scenario - defaulting to suspicious';
+        }
+        
+        const decision = suspicionScore >= 0 ? 'APPROVE' : 'REJECT';
+        const success = decision === 'APPROVE';
+        
+        return {
+            suspicionScore: suspicionScore,
+            decision: decision,
+            success: success,
+            reasoning: reasoning,
+            rulesApplied: 3 // Fallback uses 3 basic rules
+        };
+    }
+    
     // Get business rules from Supabase
     async getBusinessRules(scenarioType) {
         console.log('DefenderAI: Fetching rules for scenario:', scenarioType);
@@ -343,6 +442,12 @@ class DefenderAI {
         if (this.rulesCache.has(scenarioType)) {
             console.log('DefenderAI: Using cached rules:', this.rulesCache.get(scenarioType));
             return this.rulesCache.get(scenarioType);
+        }
+        
+        // Check if Supabase is available
+        if (!this.supabase) {
+            console.warn('DefenderAI: Supabase not available, using fallback rules');
+            return this.getFallbackRules(scenarioType);
         }
         
         try {
@@ -354,7 +459,7 @@ class DefenderAI {
             
             if (error) {
                 console.error('DefenderAI: Error fetching business rules:', error);
-                return [];
+                return this.getFallbackRules(scenarioType);
             }
             
             console.log('DefenderAI: Rules fetched successfully:', data);
@@ -365,7 +470,42 @@ class DefenderAI {
             
         } catch (error) {
             console.error('DefenderAI: Database error:', error);
-            return [];
+            return this.getFallbackRules(scenarioType);
+        }
+    }
+    
+    // Get fallback rules when Supabase is not available
+    getFallbackRules(scenarioType) {
+        console.log('DefenderAI: Using fallback rules for:', scenarioType);
+        
+        switch (scenarioType) {
+            case 'vendor_fraud':
+                return [
+                    { parameter_name: 'isNewVendor', weight: -20, description: 'Suspicious - new vendors need verification' },
+                    { parameter_name: 'amount', weight: -15, description: 'Suspicious - amounts over $10,000', check: (val) => val > 10000 },
+                    { parameter_name: 'hasWebsite', weight: +5, description: 'Less suspicious - has web presence' },
+                    { parameter_name: 'isHistoricalVendor', weight: +20, description: 'Trusted - known vendor' }
+                ];
+            case 'payroll_theft':
+                return [
+                    { parameter_name: 'isSameDayRequest', weight: -25, description: 'Very suspicious - immediate banking change' },
+                    { parameter_name: 'hasVerification', weight: +20, description: 'Trusted - confirmed identity' },
+                    { parameter_name: 'hasCompleteInfo', weight: +8, description: 'Less suspicious - provides complete details' }
+                ];
+            case 'card_abuse':
+                return [
+                    { parameter_name: 'requestedLimit', weight: -20, description: 'Suspicious - limit increase over $15,000', check: (val) => val > 45000 },
+                    { parameter_name: 'hasJustification', weight: +10, description: 'Less suspicious - provides business case' },
+                    { parameter_name: 'followsPolicy', weight: +12, description: 'Trusted - follows company policies' }
+                ];
+            case 'invoice_fraud':
+                return [
+                    { parameter_name: 'amount', weight: -20, description: 'Suspicious - inflated amount', check: (val) => val > 7000 },
+                    { parameter_name: 'isHistoricalVendor', weight: +18, description: 'Trusted - established vendor' },
+                    { parameter_name: 'hasDetailedBreakdown', weight: +10, description: 'Less suspicious - detailed breakdown' }
+                ];
+            default:
+                return [];
         }
     }
     
@@ -494,6 +634,12 @@ class DefenderAI {
     // Store attack attempt in database
     async storeAttackAttempt(attack, suspicionScore, decision, success, reasoning) {
         try {
+            // Check if Supabase is available
+            if (!this.supabase) {
+                console.log('Supabase not available - skipping database storage');
+                return;
+            }
+            
             const { error } = await this.supabase
                 .from('attack_attempts')
                 .insert({
@@ -509,6 +655,8 @@ class DefenderAI {
             
             if (error) {
                 console.error('Error storing attack attempt:', error);
+            } else {
+                console.log('Attack attempt stored successfully');
             }
             
         } catch (error) {

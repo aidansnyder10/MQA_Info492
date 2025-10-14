@@ -179,7 +179,9 @@ async function executeAIvsAIExperiment() {
         
         // Defender AI evaluates attack
         logAIActivity('Defender AI analyzing attack...');
+        console.log('Main: About to evaluate attack with DefenderAI:', attack);
         const defense = await defenderAI.evaluateAttack(attack);
+        console.log('Main: DefenderAI evaluation result:', defense);
         
         logAIActivity(`Defender AI decision: ${defense.decision} (Score: ${defense.suspicionScore})`);
         logAIActivity('Defender reasoning: ' + defense.reasoning);

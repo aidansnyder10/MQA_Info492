@@ -337,45 +337,62 @@ class DefenderAI {
     
     // Get business rules from Supabase
     async getBusinessRules(scenarioType) {
+        console.log('DefenderAI: Fetching rules for scenario:', scenarioType);
+        
         // Check cache first
         if (this.rulesCache.has(scenarioType)) {
+            console.log('DefenderAI: Using cached rules:', this.rulesCache.get(scenarioType));
             return this.rulesCache.get(scenarioType);
         }
         
         try {
+            console.log('DefenderAI: Querying Supabase for rules...');
             const { data, error } = await this.supabase
                 .from('business_rules')
                 .select('*')
                 .eq('scenario_type', scenarioType);
             
             if (error) {
-                console.error('Error fetching business rules:', error);
+                console.error('DefenderAI: Error fetching business rules:', error);
                 return [];
             }
+            
+            console.log('DefenderAI: Rules fetched successfully:', data);
             
             // Cache the rules
             this.rulesCache.set(scenarioType, data);
             return data;
             
         } catch (error) {
-            console.error('Database error:', error);
+            console.error('DefenderAI: Database error:', error);
             return [];
         }
     }
     
     // Calculate suspicion score based on rules
     calculateSuspicionScore(attackData, rules) {
+        console.log('DefenderAI: Calculating score for attack data:', attackData);
+        console.log('DefenderAI: Available rules:', rules);
+        
         let totalScore = 0;
+        let appliedRules = [];
         
         rules.forEach(rule => {
             const parameterName = rule.parameter_name;
             const weight = rule.weight;
             
             // Apply rule if condition is met
-            if (this.evaluateRuleCondition(attackData, parameterName)) {
+            const conditionMet = this.evaluateRuleCondition(attackData, parameterName);
+            console.log(`DefenderAI: Rule ${parameterName} (weight: ${weight}) - condition met: ${conditionMet}`);
+            
+            if (conditionMet) {
                 totalScore += weight;
+                appliedRules.push({ parameterName, weight });
             }
         });
+        
+        console.log('DefenderAI: Applied rules:', appliedRules);
+        console.log('DefenderAI: Total suspicion score:', totalScore);
         
         return totalScore;
     }

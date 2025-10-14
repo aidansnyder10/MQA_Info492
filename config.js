@@ -42,7 +42,8 @@ window.SecureBankConfig = {
             defaultModel: 'microsoft/DialoGPT-medium',
             // Optional: Add your free Hugging Face token for higher rate limits
             // Get free token at: https://huggingface.co/settings/tokens
-            token: '', // Leave empty for basic free usage
+            // Replace with your actual token: 'hf_your_token_here'
+            token: '', // Paste your Hugging Face token here
             maxTokens: 150,
             temperature: 0.7
         },
@@ -51,6 +52,14 @@ window.SecureBankConfig = {
             timeout: 15000, // 15 seconds
             retryDelay: 2000 // 2 seconds
         }
+    },
+    
+    // Supabase Configuration for Demo 2
+    supabase: {
+        // Replace with your actual Supabase project URL
+        url: '', // e.g., 'https://abcdefghijklmnop.supabase.co'
+        // Replace with your actual Supabase anon key
+        anonKey: '' // e.g., 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
     }
 }
 

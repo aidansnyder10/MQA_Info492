@@ -41,12 +41,12 @@ window.SecureBankConfig = {
             apiUrl: 'https://api-inference.huggingface.co/models/',
             // Free models available without API key for basic usage
             models: {
-                'gpt2': 'Text Generation',
-                'distilbert-base-uncased': 'Text Classification',
+                'facebook/blenderbot-400M-distill': 'Conversational AI (Most Reliable)',
                 'microsoft/DialoGPT-small': 'Conversational AI (Small)',
-                'facebook/blenderbot-400M-distill': 'Conversational AI'
+                'gpt2': 'Text Generation',
+                'distilbert-base-uncased': 'Text Classification'
             },
-            defaultModel: 'gpt2', // Use gpt2 as default - more reliable
+            defaultModel: 'facebook/blenderbot-400M-distill', // Use BlenderBot as default - most reliable
             // Optional: Add your free Hugging Face token for higher rate limits
             // Get free token at: https://huggingface.co/settings/tokens
             // Replace with your actual token: 'hf_your_token_here'

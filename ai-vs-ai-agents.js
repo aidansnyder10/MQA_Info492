@@ -265,7 +265,8 @@ class AttackAI {
                 return_full_text: false,
                 do_sample: true,
                 top_k: 50,
-                top_p: 0.95
+                top_p: 0.95,
+                repetition_penalty: 1.1
             }
         };
         

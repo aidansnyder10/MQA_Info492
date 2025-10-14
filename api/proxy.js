@@ -44,7 +44,21 @@ export default async function handler(req, res) {
             body: JSON.stringify(requestBody)
         });
         
-        const data = await response.json();
+        let data;
+        try {
+            const responseText = await response.text();
+            if (responseText.trim()) {
+                data = JSON.parse(responseText);
+            } else {
+                data = { error: 'Empty response' };
+            }
+        } catch (parseError) {
+            console.error('Failed to parse response:', parseError);
+            data = { 
+                error: 'Invalid JSON response',
+                rawResponse: await response.text().catch(() => 'Could not read response')
+            };
+        }
         
         res.status(response.status).json({
             success: response.ok,

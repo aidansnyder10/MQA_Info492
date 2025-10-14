@@ -263,28 +263,46 @@ class AttackAI {
             headers['Authorization'] = `Bearer ${this.token}`;
         }
         
-        // List of models to try in order
+        // List of models to try in order - GPT-2 first since it's most reliable
         const modelsToTry = [
+            'gpt2',
             'distilbert-base-uncased',
             'facebook/blenderbot-400M-distill', 
-            'microsoft/DialoGPT-small',
-            'gpt2'
+            'microsoft/DialoGPT-small'
         ];
         
         for (const model of modelsToTry) {
             const modelUrl = this.config.apiUrl + model;
-            const requestBody = {
-                inputs: prompt,
-                parameters: {
-                    max_length: 100,
-                    temperature: 0.7,
-                    return_full_text: false,
-                    do_sample: true,
-                    top_k: 50,
-                    top_p: 0.95,
-                    repetition_penalty: 1.1
-                }
-            };
+            // Optimize parameters for each model type
+            let requestBody;
+            if (model === 'gpt2') {
+                requestBody = {
+                    inputs: prompt,
+                    parameters: {
+                        max_new_tokens: 50,
+                        temperature: 0.7,
+                        do_sample: true,
+                        top_k: 50,
+                        top_p: 0.95,
+                        return_full_text: false
+                    }
+                };
+            } else if (model === 'distilbert-base-uncased') {
+                requestBody = {
+                    inputs: prompt
+                };
+            } else {
+                // Default parameters for other models
+                requestBody = {
+                    inputs: prompt,
+                    parameters: {
+                        max_length: 100,
+                        temperature: 0.7,
+                        return_full_text: false,
+                        do_sample: true
+                    }
+                };
+            }
             
             try {
                 console.log(`Trying Hugging Face API: ${modelUrl}`);
@@ -316,22 +334,53 @@ class AttackAI {
         return this.getFallbackReasoning(prompt);
     }
     
-    // Fallback reasoning when API fails
+    // Enhanced fallback reasoning when API fails
     getFallbackReasoning(prompt) {
-        console.log('Using fallback reasoning for prompt:', prompt.substring(0, 100) + '...');
+        console.log('Using enhanced fallback reasoning for prompt:', prompt.substring(0, 100) + '...');
         
-        // Generate contextual fallback reasoning based on prompt content
-        if (prompt.includes('vendor_fraud')) {
-            return 'Fallback: Selected this vendor payment approach based on typical business patterns and urgency indicators.';
-        } else if (prompt.includes('payroll_theft')) {
-            return 'Fallback: Chose this payroll modification strategy considering employee verification requirements and timing factors.';
-        } else if (prompt.includes('card_abuse')) {
-            return 'Fallback: Determined this card limit increase is justified based on team spending patterns and business needs.';
-        } else if (prompt.includes('invoice_fraud')) {
-            return 'Fallback: Selected this invoice amount based on historical vendor relationships and service complexity.';
-        } else {
-            return 'Fallback: Made decision based on standard business administration protocols and risk assessment.';
+        // Generate more sophisticated contextual fallback reasoning
+        const scenarios = [
+            'vendor_fraud', 'payroll_theft', 'card_abuse', 'invoice_fraud'
+        ];
+        
+        const fallbackReasons = {
+            vendor_fraud: [
+                'Selected this vendor payment approach based on typical business patterns and urgency indicators.',
+                'Chose this payment method considering vendor verification status and transaction history.',
+                'Determined this approach minimizes risk while maintaining operational efficiency.',
+                'Applied standard procurement protocols with appropriate due diligence checks.'
+            ],
+            payroll_theft: [
+                'Chose this payroll modification strategy considering employee verification requirements and timing factors.',
+                'Selected approach based on HR security protocols and identity verification standards.',
+                'Applied standard payroll security measures with appropriate audit trail requirements.',
+                'Determined this method balances employee convenience with security best practices.'
+            ],
+            card_abuse: [
+                'Determined this card limit increase is justified based on team spending patterns and business needs.',
+                'Applied corporate card policies considering current usage trends and risk assessment.',
+                'Selected this approach based on historical approval patterns and business justification.',
+                'Chose method that maintains financial controls while supporting operational requirements.'
+            ],
+            invoice_fraud: [
+                'Selected this invoice amount based on historical vendor relationships and service complexity.',
+                'Applied standard invoice verification procedures with appropriate documentation review.',
+                'Determined this approach based on vendor performance history and service scope.',
+                'Chose method that ensures accuracy while maintaining efficient payment processes.'
+            ]
+        };
+        
+        // Find matching scenario
+        for (const scenario of scenarios) {
+            if (prompt.includes(scenario)) {
+                const reasons = fallbackReasons[scenario];
+                const randomReason = reasons[Math.floor(Math.random() * reasons.length)];
+                return `Enhanced Fallback: ${randomReason}`;
+            }
         }
+        
+        // Default fallback
+        return 'Enhanced Fallback: Applied comprehensive business analysis considering risk factors, operational requirements, and compliance standards.';
     }
     
     parseAIResponse(aiResponse) {

@@ -168,10 +168,10 @@
             // Test Hugging Face with multiple models
             try {
                 const modelsToTest = [
+                    'gpt2',  // Test GPT-2 first since it's most reliable
                     'distilbert-base-uncased',
                     'facebook/blenderbot-400M-distill',
-                    'microsoft/DialoGPT-small',
-                    'gpt2'
+                    'microsoft/DialoGPT-small'
                 ];
                 
                 let successCount = 0;
@@ -179,20 +179,42 @@
                 
                 for (const model of modelsToTest) {
                     try {
+                        // Use different parameters for different models
+                        let requestBody;
+                        if (model === 'gpt2') {
+                            requestBody = {
+                                inputs: 'Hello, how are you?',
+                                parameters: {
+                                    max_new_tokens: 20,
+                                    temperature: 0.7,
+                                    do_sample: true,
+                                    top_k: 50,
+                                    top_p: 0.95,
+                                    return_full_text: false
+                                }
+                            };
+                        } else if (model === 'distilbert-base-uncased') {
+                            requestBody = {
+                                inputs: 'Hello, how are you?'
+                            };
+                        } else {
+                            requestBody = {
+                                inputs: 'Hello, how are you?',
+                                parameters: {
+                                    max_length: 30,
+                                    temperature: 0.7,
+                                    return_full_text: false
+                                }
+                            };
+                        }
+                        
                         const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${hfToken}`,
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify({
-                                inputs: 'Hello, how are you?',
-                                parameters: {
-                                    max_length: 50,
-                                    temperature: 0.7,
-                                    return_full_text: false
-                                }
-                            })
+                            body: JSON.stringify(requestBody)
                         });
                         
                         if (response.ok) {

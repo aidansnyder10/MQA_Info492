@@ -43,7 +43,7 @@ window.SecureBankConfig = {
             // Optional: Add your free Hugging Face token for higher rate limits
             // Get free token at: https://huggingface.co/settings/tokens
             // Replace with your actual token: 'hf_your_token_here'
-            token: '', // Paste your Hugging Face token here
+            token: '', // Paste your Hugging Face token here (keep it private!)
             maxTokens: 150,
             temperature: 0.7
         },

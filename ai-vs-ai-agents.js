@@ -263,19 +263,31 @@ class AttackAI {
             headers['Authorization'] = `Bearer ${this.token}`;
         }
         
-        // List of models to try in order - GPT-2 first since it's most reliable
+        // List of models to try in order - using models confirmed available on HF API
         const modelsToTry = [
-            'gpt2',
-            'distilbert-base-uncased',
-            'facebook/blenderbot-400M-distill', 
-            'microsoft/DialoGPT-small'
+            'microsoft/DialoGPT-medium',  // Confirmed available
+            'gpt2',                       // Confirmed available
+            'distilbert-base-uncased',    // Confirmed available
+            'facebook/blenderbot-400M-distill'  // Confirmed available
         ];
         
         for (const model of modelsToTry) {
             const modelUrl = this.config.apiUrl + model;
             // Optimize parameters for each model type
             let requestBody;
-            if (model === 'gpt2') {
+            if (model === 'microsoft/DialoGPT-medium') {
+                requestBody = {
+                    inputs: prompt,
+                    parameters: {
+                        max_length: 100,
+                        temperature: 0.7,
+                        do_sample: true,
+                        top_k: 50,
+                        top_p: 0.95,
+                        return_full_text: false
+                    }
+                };
+            } else if (model === 'gpt2') {
                 requestBody = {
                     inputs: prompt,
                     parameters: {

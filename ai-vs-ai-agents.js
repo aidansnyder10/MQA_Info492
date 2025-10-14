@@ -247,8 +247,14 @@ class AttackAI {
         return Math.abs(amount - normalAmount) <= normalAmount * 0.2;
     }
     
-    // Call Hugging Face API
+    // Call Hugging Face API with multiple model fallbacks
     async callHuggingFaceAPI(prompt) {
+        // If using fallback mode, skip API calls entirely
+        if (this.model === 'fallback' || !this.token) {
+            console.log('Using fallback mode - no API calls needed');
+            return this.getFallbackReasoning(prompt);
+        }
+        
         const headers = {
             'Content-Type': 'application/json'
         };
@@ -257,53 +263,57 @@ class AttackAI {
             headers['Authorization'] = `Bearer ${this.token}`;
         }
         
-        const requestBody = {
-            inputs: prompt,
-            parameters: {
-                max_length: 100,
-                temperature: 0.7,
-                return_full_text: false,
-                do_sample: true,
-                top_k: 50,
-                top_p: 0.95,
-                repetition_penalty: 1.1
-            }
-        };
+        // List of models to try in order
+        const modelsToTry = [
+            'distilbert-base-uncased',
+            'facebook/blenderbot-400M-distill', 
+            'microsoft/DialoGPT-small',
+            'gpt2'
+        ];
         
-        try {
-            console.log(`Calling Hugging Face API: ${this.apiUrl}`);
-            console.log(`Model: ${this.model}, Token: ${this.token ? 'Present' : 'Not provided'}`);
-            
-            const response = await fetch(this.apiUrl, {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify(requestBody)
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`Hugging Face API Error ${response.status}:`, errorText);
-                
-                // Handle specific error cases
-                if (response.status === 404) {
-                    console.warn(`Model ${this.model} not found or not loaded, using fallback reasoning`);
-                    return this.getFallbackReasoning(prompt);
-                } else if (response.status === 503) {
-                    console.warn(`Model ${this.model} is loading, using fallback reasoning`);
-                    return this.getFallbackReasoning(prompt);
+        for (const model of modelsToTry) {
+            const modelUrl = this.config.apiUrl + model;
+            const requestBody = {
+                inputs: prompt,
+                parameters: {
+                    max_length: 100,
+                    temperature: 0.7,
+                    return_full_text: false,
+                    do_sample: true,
+                    top_k: 50,
+                    top_p: 0.95,
+                    repetition_penalty: 1.1
                 }
-                throw new Error(`HTTP error! status: ${response.status}`);
+            };
+            
+            try {
+                console.log(`Trying Hugging Face API: ${modelUrl}`);
+                console.log(`Model: ${model}, Token: ${this.token ? 'Present' : 'Not provided'}`);
+                
+                const response = await fetch(modelUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`Hugging Face API Success with ${model}:`, data);
+                    return data;
+                } else {
+                    console.warn(`Model ${model} failed with status ${response.status}, trying next...`);
+                    continue; // Try next model
+                }
+                
+            } catch (error) {
+                console.warn(`Model ${model} failed with error:`, error.message);
+                continue; // Try next model
             }
-            
-            const data = await response.json();
-            console.log('Hugging Face API Success:', data);
-            return data;
-            
-        } catch (error) {
-            console.error('Hugging Face API Error:', error);
-            // Return fallback instead of throwing
-            return this.getFallbackReasoning(prompt);
         }
+        
+        // If all models failed, use fallback
+        console.log('All Hugging Face models failed, using fallback reasoning');
+        return this.getFallbackReasoning(prompt);
     }
     
     // Fallback reasoning when API fails

@@ -168,10 +168,8 @@
             // Test Hugging Face with multiple models
             try {
                 const modelsToTest = [
-                    'microsoft/DialoGPT-small',   // Test smaller DialoGPT first - more available
-                    'distilgpt2',                 // Test distilled GPT-2 second
-                    'distilbert-base-uncased',    // Test DistilBERT third
-                    'facebook/blenderbot-400M-distill'  // Test BlenderBot last
+                    'gpt2',              // Test GPT-2 first - 124M parameters
+                    'Qwen/Qwen3-0.6B'    // Test Qwen3-0.6B second - advanced reasoning
                 ];
                 
                 let successCount = 0;
@@ -181,19 +179,8 @@
                     try {
                         // Use different parameters for different models
                         let requestBody;
-                        if (model === 'microsoft/DialoGPT-small') {
-                            requestBody = {
-                                inputs: 'Hello, how are you?',
-                                parameters: {
-                                    max_length: 30,
-                                    temperature: 0.7,
-                                    do_sample: true,
-                                    top_k: 50,
-                                    top_p: 0.95,
-                                    return_full_text: false
-                                }
-                            };
-                        } else if (model === 'distilgpt2') {
+                        if (model === 'gpt2') {
+                            // GPT-2 parameters from documentation
                             requestBody = {
                                 inputs: 'Hello, how are you?',
                                 parameters: {
@@ -202,14 +189,26 @@
                                     do_sample: true,
                                     top_k: 50,
                                     top_p: 0.95,
+                                    return_full_text: false,
+                                    pad_token_id: 50256
+                                }
+                            };
+                        } else if (model === 'Qwen/Qwen3-0.6B') {
+                            // Qwen3-0.6B parameters from documentation
+                            requestBody = {
+                                inputs: 'Hello, how are you?',
+                                parameters: {
+                                    max_new_tokens: 20,
+                                    temperature: 0.6,  // Recommended for thinking mode
+                                    top_p: 0.95,       // Recommended for thinking mode
+                                    top_k: 20,         // Recommended for thinking mode
+                                    min_p: 0,          // Recommended for thinking mode
+                                    do_sample: true,
                                     return_full_text: false
                                 }
                             };
-                        } else if (model === 'distilbert-base-uncased') {
-                            requestBody = {
-                                inputs: 'Hello, how are you?'
-                            };
                         } else {
+                            // Fallback parameters
                             requestBody = {
                                 inputs: 'Hello, how are you?',
                                 parameters: {

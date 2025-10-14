@@ -41,10 +41,8 @@ window.SecureBankConfig = {
             apiUrl: 'https://api-inference.huggingface.co/models/',
             // Models that are actually available on Hugging Face Inference API
             models: {
-                'microsoft/DialoGPT-small': 'Conversational AI (Smaller, More Available)',
-                'distilgpt2': 'Text Generation (Distilled GPT-2)',
-                'distilbert-base-uncased': 'Text Classification (Available)',
-                'facebook/blenderbot-400M-distill': 'Conversational AI (Available)'
+                'gpt2': 'Text Generation (GPT-2 - 124M parameters)',
+                'Qwen/Qwen3-0.6B': 'Text Generation (Qwen3-0.6B - Advanced reasoning)'
             },
             defaultModel: 'enhanced-fallback', // Use enhanced fallback as default - always works
             // Optional: Add your free Hugging Face token for higher rate limits

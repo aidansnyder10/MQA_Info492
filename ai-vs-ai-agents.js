@@ -263,12 +263,10 @@ class AttackAI {
             headers['Authorization'] = `Bearer ${this.token}`;
         }
         
-        // List of models to try in order - using models more likely to be available on HF API
+        // List of models to try in order - using both specified models
         const modelsToTry = [
-            'microsoft/DialoGPT-small',   // Smaller version, more likely available
-            'distilgpt2',                 // Distilled GPT-2, more reliable
-            'distilbert-base-uncased',    // Text classification model
-            'facebook/blenderbot-400M-distill'  // Conversational model
+            'gpt2',              // GPT-2 - 124M parameters, text generation
+            'Qwen/Qwen3-0.6B'    // Qwen3-0.6B - Advanced reasoning capabilities
         ];
         
         for (const model of modelsToTry) {
@@ -277,28 +275,30 @@ class AttackAI {
             
             // Optimize parameters for each model type
             let parameters;
-            if (model === 'microsoft/DialoGPT-small') {
-                parameters = {
-                    max_length: 100,
-                    temperature: 0.7,
-                    do_sample: true,
-                    top_k: 50,
-                    top_p: 0.95,
-                    return_full_text: false
-                };
-            } else if (model === 'distilgpt2') {
+            if (model === 'gpt2') {
+                // GPT-2 parameters from documentation
                 parameters = {
                     max_new_tokens: 50,
                     temperature: 0.7,
                     do_sample: true,
                     top_k: 50,
                     top_p: 0.95,
+                    return_full_text: false,
+                    pad_token_id: 50256  // GPT-2 pad token
+                };
+            } else if (model === 'Qwen/Qwen3-0.6B') {
+                // Qwen3-0.6B parameters from documentation
+                parameters = {
+                    max_new_tokens: 50,
+                    temperature: 0.6,  // Recommended for thinking mode
+                    top_p: 0.95,       // Recommended for thinking mode
+                    top_k: 20,         // Recommended for thinking mode
+                    min_p: 0,          // Recommended for thinking mode
+                    do_sample: true,
                     return_full_text: false
                 };
-            } else if (model === 'distilbert-base-uncased') {
-                parameters = null; // No parameters needed for classification
             } else {
-                // Default parameters for other models
+                // Fallback parameters
                 parameters = {
                     max_length: 100,
                     temperature: 0.7,

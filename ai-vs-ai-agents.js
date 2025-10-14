@@ -263,12 +263,12 @@ class AttackAI {
             headers['Authorization'] = `Bearer ${this.token}`;
         }
         
-        // List of models to try in order - using models confirmed available on HF API
+        // List of models to try in order - using models more likely to be available on HF API
         const modelsToTry = [
-            'microsoft/DialoGPT-medium',  // Confirmed available
-            'gpt2',                       // Confirmed available
-            'distilbert-base-uncased',    // Confirmed available
-            'facebook/blenderbot-400M-distill'  // Confirmed available
+            'microsoft/DialoGPT-small',   // Smaller version, more likely available
+            'distilgpt2',                 // Distilled GPT-2, more reliable
+            'distilbert-base-uncased',    // Text classification model
+            'facebook/blenderbot-400M-distill'  // Conversational model
         ];
         
         for (const model of modelsToTry) {
@@ -277,7 +277,7 @@ class AttackAI {
             
             // Optimize parameters for each model type
             let parameters;
-            if (model === 'microsoft/DialoGPT-medium') {
+            if (model === 'microsoft/DialoGPT-small') {
                 parameters = {
                     max_length: 100,
                     temperature: 0.7,
@@ -286,7 +286,7 @@ class AttackAI {
                     top_p: 0.95,
                     return_full_text: false
                 };
-            } else if (model === 'gpt2') {
+            } else if (model === 'distilgpt2') {
                 parameters = {
                     max_new_tokens: 50,
                     temperature: 0.7,

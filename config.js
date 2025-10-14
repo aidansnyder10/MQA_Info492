@@ -41,8 +41,8 @@ window.SecureBankConfig = {
             apiUrl: 'https://api-inference.huggingface.co/models/',
             // Models that are actually available on Hugging Face Inference API
             models: {
-                'microsoft/DialoGPT-medium': 'Conversational AI (Available)',
-                'gpt2': 'Text Generation (Available)',
+                'microsoft/DialoGPT-small': 'Conversational AI (Smaller, More Available)',
+                'distilgpt2': 'Text Generation (Distilled GPT-2)',
                 'distilbert-base-uncased': 'Text Classification (Available)',
                 'facebook/blenderbot-400M-distill': 'Conversational AI (Available)'
             },

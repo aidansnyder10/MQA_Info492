@@ -168,8 +168,8 @@
             // Test Hugging Face with multiple models
             try {
                 const modelsToTest = [
-                    'microsoft/DialoGPT-medium',  // Test DialoGPT-medium first - confirmed available
-                    'gpt2',                       // Test GPT-2 second
+                    'microsoft/DialoGPT-small',   // Test smaller DialoGPT first - more available
+                    'distilgpt2',                 // Test distilled GPT-2 second
                     'distilbert-base-uncased',    // Test DistilBERT third
                     'facebook/blenderbot-400M-distill'  // Test BlenderBot last
                 ];
@@ -181,7 +181,7 @@
                     try {
                         // Use different parameters for different models
                         let requestBody;
-                        if (model === 'microsoft/DialoGPT-medium') {
+                        if (model === 'microsoft/DialoGPT-small') {
                             requestBody = {
                                 inputs: 'Hello, how are you?',
                                 parameters: {
@@ -193,7 +193,7 @@
                                     return_full_text: false
                                 }
                             };
-                        } else if (model === 'gpt2') {
+                        } else if (model === 'distilgpt2') {
                             requestBody = {
                                 inputs: 'Hello, how are you?',
                                 parameters: {

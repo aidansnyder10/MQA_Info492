@@ -46,7 +46,7 @@ window.SecureBankConfig = {
                 'distilbert-base-uncased': 'Text Classification (Available)',
                 'facebook/blenderbot-400M-distill': 'Conversational AI (Available)'
             },
-            defaultModel: 'microsoft/DialoGPT-medium', // Use DialoGPT-medium as default - confirmed available
+            defaultModel: 'enhanced-fallback', // Use enhanced fallback as default - always works
             // Optional: Add your free Hugging Face token for higher rate limits
             // Get free token at: https://huggingface.co/settings/tokens
             // Replace with your actual token: 'hf_your_token_here'

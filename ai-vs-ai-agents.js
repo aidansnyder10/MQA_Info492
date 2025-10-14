@@ -249,9 +249,9 @@ class AttackAI {
     
     // Call Hugging Face API with multiple model fallbacks
     async callHuggingFaceAPI(prompt) {
-        // If using fallback mode, skip API calls entirely
-        if (this.model === 'fallback' || !this.token) {
-            console.log('Using fallback mode - no API calls needed');
+        // If using enhanced fallback mode, skip API calls entirely
+        if (this.model === 'enhanced-fallback' || this.model === 'fallback' || !this.token) {
+            console.log('Using enhanced fallback mode - no API calls needed');
             return this.getFallbackReasoning(prompt);
         }
         
@@ -272,66 +272,65 @@ class AttackAI {
         ];
         
         for (const model of modelsToTry) {
-            const modelUrl = this.config.apiUrl + model;
+            // Use our Vercel proxy to bypass CORS restrictions
+            const proxyUrl = '/api/proxy';
+            
             // Optimize parameters for each model type
-            let requestBody;
+            let parameters;
             if (model === 'microsoft/DialoGPT-medium') {
-                requestBody = {
-                    inputs: prompt,
-                    parameters: {
-                        max_length: 100,
-                        temperature: 0.7,
-                        do_sample: true,
-                        top_k: 50,
-                        top_p: 0.95,
-                        return_full_text: false
-                    }
+                parameters = {
+                    max_length: 100,
+                    temperature: 0.7,
+                    do_sample: true,
+                    top_k: 50,
+                    top_p: 0.95,
+                    return_full_text: false
                 };
             } else if (model === 'gpt2') {
-                requestBody = {
-                    inputs: prompt,
-                    parameters: {
-                        max_new_tokens: 50,
-                        temperature: 0.7,
-                        do_sample: true,
-                        top_k: 50,
-                        top_p: 0.95,
-                        return_full_text: false
-                    }
+                parameters = {
+                    max_new_tokens: 50,
+                    temperature: 0.7,
+                    do_sample: true,
+                    top_k: 50,
+                    top_p: 0.95,
+                    return_full_text: false
                 };
             } else if (model === 'distilbert-base-uncased') {
-                requestBody = {
-                    inputs: prompt
-                };
+                parameters = null; // No parameters needed for classification
             } else {
                 // Default parameters for other models
-                requestBody = {
-                    inputs: prompt,
-                    parameters: {
-                        max_length: 100,
-                        temperature: 0.7,
-                        return_full_text: false,
-                        do_sample: true
-                    }
+                parameters = {
+                    max_length: 100,
+                    temperature: 0.7,
+                    return_full_text: false,
+                    do_sample: true
                 };
             }
             
             try {
-                console.log(`Trying Hugging Face API: ${modelUrl}`);
+                console.log(`Trying Hugging Face API via proxy: ${model}`);
                 console.log(`Model: ${model}, Token: ${this.token ? 'Present' : 'Not provided'}`);
                 
-                const response = await fetch(modelUrl, {
+                const response = await fetch(proxyUrl, {
                     method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify(requestBody)
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        inputs: prompt,
+                        parameters: parameters,
+                        token: this.token
+                    })
                 });
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log(`Hugging Face API Success with ${model}:`, data);
-                    return data;
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log(`Hugging Face API Success with ${model}:`, result.data);
+                    return result.data;
                 } else {
-                    console.warn(`Model ${model} failed with status ${response.status}, trying next...`);
+                    console.warn(`Model ${model} failed with status ${result.status}, trying next...`);
                     continue; // Try next model
                 }
                 

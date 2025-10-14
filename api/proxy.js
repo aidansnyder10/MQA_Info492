@@ -29,8 +29,18 @@ export default async function handler(req, res) {
             'Content-Type': 'application/json'
         };
         
+        // Hugging Face requires authentication for Inference API
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
+        } else {
+            // If no token provided, return helpful error
+            res.status(401).json({
+                success: false,
+                error: 'Authentication required',
+                message: 'Hugging Face Inference API requires a valid token. Please add your Hugging Face token in the token manager.',
+                status: 401
+            });
+            return;
         }
         
         const requestBody = {

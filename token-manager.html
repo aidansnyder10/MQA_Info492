@@ -240,7 +240,13 @@
                             workingModels.push(model);
                             console.log(`${model} - Success`);
                         } else {
-                            console.log(`${model} - Failed (${result.status})`);
+                            if (result.status === 401) {
+                                console.log(`${model} - Authentication Required (401)`);
+                            } else if (result.status === 404) {
+                                console.log(`${model} - Model Not Found (404)`);
+                            } else {
+                                console.log(`${model} - Failed (${result.status})`);
+                            }
                         }
                     } catch (error) {
                         console.log(`${model} - Error:`, error.message);

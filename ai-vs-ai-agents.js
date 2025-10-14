@@ -262,11 +262,17 @@ class AttackAI {
             parameters: {
                 max_length: 100,
                 temperature: 0.7,
-                return_full_text: false
+                return_full_text: false,
+                do_sample: true,
+                top_k: 50,
+                top_p: 0.95
             }
         };
         
         try {
+            console.log(`Calling Hugging Face API: ${this.apiUrl}`);
+            console.log(`Model: ${this.model}, Token: ${this.token ? 'Present' : 'Not provided'}`);
+            
             const response = await fetch(this.apiUrl, {
                 method: 'POST',
                 headers: headers,
@@ -274,15 +280,22 @@ class AttackAI {
             });
             
             if (!response.ok) {
-                // Handle 404 and other errors gracefully
+                const errorText = await response.text();
+                console.error(`Hugging Face API Error ${response.status}:`, errorText);
+                
+                // Handle specific error cases
                 if (response.status === 404) {
-                    console.warn(`Model ${this.model} not found, using fallback reasoning`);
+                    console.warn(`Model ${this.model} not found or not loaded, using fallback reasoning`);
+                    return this.getFallbackReasoning(prompt);
+                } else if (response.status === 503) {
+                    console.warn(`Model ${this.model} is loading, using fallback reasoning`);
                     return this.getFallbackReasoning(prompt);
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const data = await response.json();
+            console.log('Hugging Face API Success:', data);
             return data;
             
         } catch (error) {

@@ -1,11 +1,18 @@
 // Configuration file for SecureBank Admin Portal
 // Copy this file and rename it to config.js, then update with your actual values
 
+// Load tokens from localStorage
+const hfToken = localStorage.getItem('hf_token') || '';
+const supabaseKey = localStorage.getItem('supabase_anon_key') || '';
+
+console.log('Config loading - HF Token:', hfToken ? 'Found' : 'Not found');
+console.log('Config loading - Supabase Key:', supabaseKey ? 'Found' : 'Not found');
+
 window.SecureBankConfig = {
     // Supabase Configuration
     supabase: {
         url: 'https://cumodtrxkqakvjandlsw.supabase.co',
-        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1bW9kdHJ4a3Fha3ZqYW5kbHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4NTM3MzYsImV4cCI6MjA3NTQyOTczNn0.jFdUMilPEv_Yc2EYTFisRzlbFmo_9kcl7A_2xwIQ6cU'
+        anonKey: supabaseKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1bW9kdHJ4a3Fha3ZqYW5kbHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4NTM3MzYsImV4cCI6MjA3NTQyOTczNn0.jFdUMilPEv_Yc2EYTFisRzlbFmo_9kcl7A_2xwIQ6cU'
     },
     
     // Admin Credentials (for demo purposes)
@@ -43,7 +50,7 @@ window.SecureBankConfig = {
             // Optional: Add your free Hugging Face token for higher rate limits
             // Get free token at: https://huggingface.co/settings/tokens
             // Replace with your actual token: 'hf_your_token_here'
-            token: '', // Add your Hugging Face token here locally
+            token: hfToken, // Get token from localStorage or use empty
             maxTokens: 150,
             temperature: 0.7
         },
@@ -59,7 +66,7 @@ window.SecureBankConfig = {
         // Replace with your actual Supabase project URL
         url: 'https://cumodtrxkqakvjandlsw.supabase.co',
         // Replace with your actual Supabase anon key
-        anonKey: '' // Add your Supabase anon key here locally
+        anonKey: localStorage.getItem('supabase_anon_key') || '' // Get key from localStorage or use empty
     }
 }
 

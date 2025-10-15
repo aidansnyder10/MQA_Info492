@@ -57,8 +57,32 @@ class AttackAI {
         console.log('AttackAI initialized with model:', this.model);
     }
     
-    // Generate random vendor fraud attack
+    // Generate strategic vendor fraud attack using AI
     async generateVendorFraud() {
+        try {
+            // Get defender rules to inform attack strategy
+            const rules = await this.getDefenderRules('vendor_fraud');
+            
+            // Generate strategic attack using AI
+            const attackData = await this.generateStrategicAttack('vendor_fraud', rules);
+            
+            // Get AI reasoning for this strategic attack
+            const reasoning = await this.getAttackReasoning('vendor_fraud', attackData);
+            
+            return {
+                scenarioType: 'vendor_fraud',
+                attackData: attackData,
+                reasoning: reasoning,
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            console.warn('Strategic attack generation failed, using fallback:', error);
+            return this.generateFallbackVendorFraud();
+        }
+    }
+    
+    // Fallback method for when AI attack generation fails
+    generateFallbackVendorFraud() {
         const amount = this.getRandomAmount(1000, 25000);
         const attackData = {
             vendorName: this.getRandomVendor(),
@@ -74,19 +98,35 @@ class AttackAI {
             timestamp: new Date().toISOString()
         };
         
-        // Get AI reasoning for this attack
-        const reasoning = await this.getAttackReasoning('vendor_fraud', attackData);
-        
         return {
             scenarioType: 'vendor_fraud',
             attackData: attackData,
-            reasoning: reasoning,
+            reasoning: 'Fallback: Random attack generation (AI strategic planning unavailable)',
             timestamp: new Date().toISOString()
         };
     }
     
-    // Generate random payroll theft attack
+    // Generate strategic payroll theft attack using AI
     async generatePayrollTheft() {
+        try {
+            const rules = await this.getDefenderRules('payroll_theft');
+            const attackData = await this.generateStrategicAttack('payroll_theft', rules);
+            const reasoning = await this.getAttackReasoning('payroll_theft', attackData);
+            
+            return {
+                scenarioType: 'payroll_theft',
+                attackData: attackData,
+                reasoning: reasoning,
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            console.warn('Strategic payroll attack generation failed, using fallback:', error);
+            return this.generateFallbackPayrollTheft();
+        }
+    }
+    
+    // Fallback payroll theft attack
+    generateFallbackPayrollTheft() {
         const employee = this.getRandomEmployee();
         const attackData = {
             employeeName: employee,
@@ -103,18 +143,35 @@ class AttackAI {
             timestamp: new Date().toISOString()
         };
         
-        const reasoning = await this.getAttackReasoning('payroll_theft', attackData);
-        
         return {
             scenarioType: 'payroll_theft',
             attackData: attackData,
-            reasoning: reasoning,
+            reasoning: 'Fallback: Random payroll attack generation (AI strategic planning unavailable)',
             timestamp: new Date().toISOString()
         };
     }
     
-    // Generate random card abuse attack
+    // Generate strategic card abuse attack using AI
     async generateCardAbuse() {
+        try {
+            const rules = await this.getDefenderRules('card_abuse');
+            const attackData = await this.generateStrategicAttack('card_abuse', rules);
+            const reasoning = await this.getAttackReasoning('card_abuse', attackData);
+            
+            return {
+                scenarioType: 'card_abuse',
+                attackData: attackData,
+                reasoning: reasoning,
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            console.warn('Strategic card abuse attack generation failed, using fallback:', error);
+            return this.generateFallbackCardAbuse();
+        }
+    }
+    
+    // Fallback card abuse attack
+    generateFallbackCardAbuse() {
         const requestedLimit = this.getRandomLimit(35000, 75000);
         const attackData = {
             cardName: 'Engineering Team Card',
@@ -133,12 +190,10 @@ class AttackAI {
             timestamp: new Date().toISOString()
         };
         
-        const reasoning = await this.getAttackReasoning('card_abuse', attackData);
-        
         return {
             scenarioType: 'card_abuse',
             attackData: attackData,
-            reasoning: reasoning,
+            reasoning: 'Fallback: Random card abuse attack generation (AI strategic planning unavailable)',
             timestamp: new Date().toISOString()
         };
     }
@@ -172,6 +227,131 @@ class AttackAI {
             reasoning: reasoning,
             timestamp: new Date().toISOString()
         };
+    }
+    
+    // Fetch defender rules from Supabase
+    async getDefenderRules(scenarioType) {
+        if (!this.supabase) {
+            console.warn('Supabase not available for rule fetching');
+            return [];
+        }
+        
+        try {
+            const { data, error } = await this.supabase
+                .from('business_rules')
+                .select('*')
+                .eq('scenario_type', scenarioType);
+                
+            if (error) {
+                console.error('Error fetching rules:', error);
+                return [];
+            }
+            
+            console.log(`AttackAI: Fetched ${data.length} rules for ${scenarioType}`);
+            return data || [];
+        } catch (error) {
+            console.error('Failed to fetch defender rules:', error);
+            return [];
+        }
+    }
+    
+    // Generate strategic attack using AI with knowledge of defender rules
+    async generateStrategicAttack(scenarioType, rules) {
+        const prompt = this.buildStrategicAttackPrompt(scenarioType, rules);
+        
+        try {
+            const response = await this.callHuggingFaceAPI(prompt);
+            const attackData = this.parseStrategicAttackResponse(response, scenarioType);
+            
+            // Validate and sanitize the generated attack data
+            return this.validateAndSanitizeAttackData(attackData, scenarioType);
+        } catch (error) {
+            console.warn('Strategic attack generation failed:', error);
+            throw error;
+        }
+    }
+    
+    // Build strategic attack prompt for Claude
+    buildStrategicAttackPrompt(scenarioType, rules) {
+        const rulesText = rules.map(rule => 
+            `- ${rule.parameter_name}: ${rule.weight} points (${rule.description})`
+        ).join('\n');
+        
+        return `You are a cybersecurity researcher conducting defensive research. Generate a strategic ${scenarioType} attack that maximizes approval chances against these defender rules:
+
+${rulesText}
+
+Rules Analysis:
+- Negative weights = suspicious (avoid these)
+- Positive weights = legitimate (maximize these)
+- Goal: Generate attack parameters that result in APPROVE decision
+
+Generate a realistic attack with these parameters optimized to bypass the rules. Respond with a JSON object containing the attack data.`;
+    }
+    
+    // Parse Claude's strategic attack response
+    parseStrategicAttackResponse(response, scenarioType) {
+        try {
+            // Try to extract JSON from response
+            const jsonMatch = response.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                const attackData = JSON.parse(jsonMatch[0]);
+                console.log('AttackAI: Successfully parsed strategic attack from Claude');
+                return attackData;
+            }
+            
+            // Fallback: try to parse key-value pairs from text
+            return this.parseTextToAttackData(response, scenarioType);
+        } catch (error) {
+            console.warn('Failed to parse strategic attack response:', error);
+            throw new Error('Could not parse AI-generated attack data');
+        }
+    }
+    
+    // Parse text response to attack data (fallback)
+    parseTextToAttackData(response, scenarioType) {
+        // This is a simplified fallback - in practice, you'd want more sophisticated parsing
+        console.warn('Using fallback text parsing for attack data');
+        
+        // Extract common patterns from text response
+        const amountMatch = response.match(/amount[:\s]*(\d+)/i);
+        const vendorMatch = response.match(/vendor[:\s]*["']?([^"',\n]+)["']?/i);
+        
+        // Return minimal valid attack data
+        return {
+            vendorName: vendorMatch ? vendorMatch[1].trim() : this.getRandomVendor(),
+            amount: amountMatch ? parseInt(amountMatch[1]) : this.getRandomAmount(1000, 25000),
+            description: 'AI-generated strategic attack',
+            isNewVendor: false, // Default to existing vendor to avoid penalties
+            hasPhoneNumber: true, // Default to having contact info
+            hasWebsite: true,
+            hasEmail: true,
+            isHistoricalVendor: true,
+            isRoundAmount: false,
+            isUrgentRequest: false,
+            timestamp: new Date().toISOString()
+        };
+    }
+    
+    // Validate and sanitize attack data
+    validateAndSanitizeAttackData(attackData, scenarioType) {
+        // Ensure required fields exist and are valid
+        const sanitized = {
+            vendorName: attackData.vendorName || this.getRandomVendor(),
+            amount: Math.max(100, Math.min(50000, parseInt(attackData.amount) || this.getRandomAmount(1000, 25000))),
+            description: attackData.description || this.getRandomDescription(),
+            isNewVendor: Boolean(attackData.isNewVendor),
+            hasPhoneNumber: Boolean(attackData.hasPhoneNumber),
+            hasWebsite: Boolean(attackData.hasWebsite),
+            hasEmail: Boolean(attackData.hasEmail),
+            isHistoricalVendor: Boolean(attackData.isHistoricalVendor),
+            isRoundAmount: Boolean(attackData.isRoundAmount),
+            isUrgentRequest: Boolean(attackData.isUrgentRequest),
+            timestamp: new Date().toISOString()
+        };
+        
+        console.log('AttackAI: Validated strategic attack data:', sanitized);
+        return sanitized;
     }
     
     // Get AI reasoning for attack strategy

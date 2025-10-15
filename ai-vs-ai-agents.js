@@ -461,6 +461,7 @@ Avoid the patterns that led to these failures. Try different approaches.`;
     parseTextToAttackData(response, scenarioType) {
         // This is a simplified fallback - in practice, you'd want more sophisticated parsing
         console.warn('Using fallback text parsing for attack data');
+        console.log('Fallback generating data for scenario:', scenarioType);
         
         // Extract common patterns from text response
         const amountMatch = response.match(/amount[:\s]*(\d+)/i);
@@ -489,7 +490,7 @@ Avoid the patterns that led to these failures. Try different approaches.`;
                     isUrgentRequest: false
                 };
             case 'payroll_theft':
-                return {
+                const payrollData = {
                     ...baseData,
                     employeeName: employeeMatch ? employeeMatch[1].trim() : 'John Smith',
                     isSameDayRequest: false,
@@ -500,8 +501,10 @@ Avoid the patterns that led to these failures. Try different approaches.`;
                     hasCompleteInfo: true,
                     followsProcedure: true
                 };
+                console.log('Generated payroll fallback data:', payrollData);
+                return payrollData;
             case 'card_abuse':
-                return {
+                const cardData = {
                     ...baseData,
                     requestedLimit: amountMatch ? parseInt(amountMatch[1]) : this.getRandomAmount(5000, 20000),
                     hasJustification: true,
@@ -511,6 +514,8 @@ Avoid the patterns that led to these failures. Try different approaches.`;
                     isReasonableAmount: true,
                     followsPolicy: true
                 };
+                console.log('Generated card abuse fallback data:', cardData);
+                return cardData;
             case 'invoice_fraud':
                 return {
                     ...baseData,
@@ -949,6 +954,8 @@ class DefenderAI {
     // Calculate suspicion score based on rules
     calculateSuspicionScore(attackData, rules) {
         console.log('DefenderAI: Calculating score for attack data:', attackData);
+        console.log('DefenderAI: Attack data keys:', Object.keys(attackData));
+        console.log('DefenderAI: Attack data values:', Object.values(attackData));
         console.log('DefenderAI: Available rules:', rules);
         
         let totalScore = 0;

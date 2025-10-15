@@ -63,6 +63,25 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .notice {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #1565c0;
+        }
+        .notice code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
         .info {
             background: #d1ecf1;
             color: #0c5460;
@@ -74,6 +93,11 @@
     <div class="container">
         <h1>🔐 API Token Manager</h1>
         <p>Configure your API tokens for the AI vs AI experiment. These are stored locally in your browser and never sent to any server.</p>
+        
+        <div class="notice">
+            <strong>⚠️ Important:</strong> Claude API testing only works on <code>localhost:8000</code> (local development). 
+            On the live site, only Hugging Face tokens can be tested due to CORS restrictions.
+        </div>
         
         <form id="tokenForm">
             <div class="form-group">
@@ -182,6 +206,14 @@
             if (claudeToken) {
                 showStatus('Testing Claude API...', 'info');
                 try {
+                    // Check if we're on localhost (local server) or live site
+                    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    
+                    if (!isLocal) {
+                        showStatus('⚠️ Claude API testing only works on localhost. Please test locally or use Hugging Face.', 'warning');
+                        return;
+                    }
+                    
                     const response = await fetch('/api/proxy', {
                         method: 'POST',
                         headers: {

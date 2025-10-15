@@ -454,6 +454,45 @@
                     </div>
                 </div>
 
+                <!-- Attack Visualization Section -->
+                <div class="attack-visualization">
+                    <h3>Live Attack Visualization</h3>
+                    <div id="attack-flow" class="attack-flow-container">
+                        <div class="attack-step" id="step-1">
+                            <div class="step-icon">🎯</div>
+                            <div class="step-label">Strategy Selection</div>
+                            <div class="step-status" id="strategy-status">Waiting...</div>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="attack-step" id="step-2">
+                            <div class="step-icon">🤖</div>
+                            <div class="step-label">AI Attack Generation</div>
+                            <div class="step-status" id="attack-status">Waiting...</div>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="attack-step" id="step-3">
+                            <div class="step-icon">🛡️</div>
+                            <div class="step-label">Defense Evaluation</div>
+                            <div class="step-status" id="defense-status">Waiting...</div>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="attack-step" id="step-4">
+                            <div class="step-icon">⚖️</div>
+                            <div class="step-label">Final Decision</div>
+                            <div class="step-status" id="decision-status">Waiting...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Attack Details Panel -->
+                    <div id="attack-details" class="attack-details-panel" style="display: none;">
+                        <h4>Attack Parameters</h4>
+                        <div id="attack-parameters" class="parameters-grid"></div>
+                        
+                        <h4>Defense Rule Analysis</h4>
+                        <div id="rule-analysis" class="rule-analysis"></div>
+                    </div>
+                </div>
+
                 <div class="experiment-results">
                     <h3>Strategy Comparison Results</h3>
                     <div id="strategy-results" class="strategy-comparison">

@@ -1331,8 +1331,236 @@ body {
     border-left-color: #8e44ad;
 }
 
+/* Attack Visualization Styles */
+.attack-visualization {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.attack-flow-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 20px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 10px;
+    overflow-x: auto;
+}
+
+.attack-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.attack-step.active {
+    background: #667eea;
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.attack-step.completed {
+    background: #28a745;
+    color: white;
+}
+
+.attack-step.failed {
+    background: #dc3545;
+    color: white;
+}
+
+.step-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.step-label {
+    font-weight: bold;
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.step-status {
+    font-size: 10px;
+    text-align: center;
+    opacity: 0.8;
+}
+
+.flow-arrow {
+    font-size: 20px;
+    color: #667eea;
+    margin: 0 10px;
+    font-weight: bold;
+}
+
+.attack-details-panel {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.parameters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.parameter-card {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #6c757d;
+}
+
+.parameter-card.suspicious {
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+
+.parameter-card.legitimate {
+    border-left-color: #28a745;
+    background: #f8fff8;
+}
+
+.parameter-name {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.parameter-value {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.parameter-impact {
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.parameter-impact.negative {
+    background: #dc3545;
+    color: white;
+}
+
+.parameter-impact.positive {
+    background: #28a745;
+    color: white;
+}
+
+.parameter-impact.neutral {
+    background: #6c757d;
+    color: white;
+}
+
+.rule-analysis {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rule-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: white;
+    border-radius: 5px;
+    border-left: 4px solid #6c757d;
+}
+
+.rule-item.triggered {
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+
+.rule-item.passed {
+    border-left-color: #28a745;
+    background: #f8fff8;
+}
+
+.rule-name {
+    font-weight: bold;
+    color: #333;
+}
+
+.rule-score {
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 3px;
+}
+
+.rule-score.negative {
+    background: #dc3545;
+    color: white;
+}
+
+.rule-score.positive {
+    background: #28a745;
+    color: white;
+}
+
+.rule-score.neutral {
+    background: #6c757d;
+    color: white;
+}
+
+.final-decision {
+    text-align: center;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.final-decision.approved {
+    background: #d4edda;
+    color: #155724;
+    border: 2px solid #c3e6cb;
+}
+
+.final-decision.rejected {
+    background: #f8d7da;
+    color: #721c24;
+    border: 2px solid #f5c6cb;
+}
+
 @media (max-width: 768px) {
     .strategy-comparison {
+        grid-template-columns: 1fr;
+    }
+    
+    .attack-flow-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .flow-arrow {
+        transform: rotate(90deg);
+        font-size: 16px;
+    }
+    
+    .parameters-grid {
         grid-template-columns: 1fr;
     }
 }

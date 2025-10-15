@@ -142,6 +142,9 @@ function startExperiment() {
         }
     };
     
+    // Reset attack visualization
+    resetAttackVisualization();
+    
     // Reinitialize AI agents - always use Claude with automatic fallback
     if (attackAI) {
         attackAI.model = 'claude-haiku';
@@ -154,6 +157,9 @@ function startExperiment() {
     logAIActivity('Strategy Level: ' + strategy.toUpperCase());
     logAIActivity('Starting AI vs AI battle...');
     
+    // Start visualization
+    updateAttackStep(1, 'active', 'Selected: ' + strategy.toUpperCase());
+    
     // Start AI vs AI experiment
     setTimeout(() => executeAIvsAIExperiment(), 2000);
 }
@@ -164,6 +170,12 @@ async function executeAIvsAIExperiment() {
     
     try {
         logAIActivity(`Starting ${scenario} AI vs AI battle with ${strategy} strategy...`);
+        
+        // Step 1: Complete strategy selection
+        updateAttackStep(1, 'completed', 'Selected: ' + strategy.toUpperCase());
+        
+        // Step 2: Start AI attack generation
+        updateAttackStep(2, 'active', 'Generating attack...');
         
         // Attack AI generates attack with strategy level
         let attack;
@@ -185,6 +197,12 @@ async function executeAIvsAIExperiment() {
                 return;
         }
         
+        // Step 2: Complete attack generation
+        updateAttackStep(2, 'completed', 'Attack generated');
+        
+        // Step 3: Start defense evaluation
+        updateAttackStep(3, 'active', 'Evaluating attack...');
+        
         logAIActivity('Attack AI generated: ' + attack.scenarioType);
         logAIActivity('Attack reasoning: ' + attack.reasoning);
         
@@ -194,8 +212,18 @@ async function executeAIvsAIExperiment() {
         const defense = await defenderAI.evaluateAttack(attack);
         console.log('Main: DefenderAI evaluation result:', defense);
         
+        // Step 3: Complete defense evaluation
+        updateAttackStep(3, 'completed', 'Evaluation complete');
+        
+        // Step 4: Show final decision
+        updateAttackStep(4, defense.success ? 'completed' : 'failed', 
+                        defense.success ? 'APPROVED' : 'REJECTED');
+        
         logAIActivity(`Defender AI decision: ${defense.decision} (Score: ${defense.suspicionScore})`);
         logAIActivity('Defender reasoning: ' + defense.reasoning);
+        
+        // Show attack details visualization
+        showAttackDetails(attack, defense);
         
         // Record results
         const attackSuccess = defense.success;
@@ -225,7 +253,7 @@ async function executeAIvsAIExperiment() {
         updateStrategyResults();
         
         // Continue with next attack
-        setTimeout(() => executeNextAttack(), 3000);
+        setTimeout(() => executeNextAttack(), 5000);
         
     } catch (error) {
         console.error('AI vs AI experiment error:', error);
@@ -359,4 +387,186 @@ function updateStrategyResults() {
     
     document.getElementById('expert-attack-count').textContent = expertAttacks;
     document.getElementById('expert-success-rate').textContent = expertRate + '%';
+}
+
+// Attack Visualization Functions
+function resetAttackVisualization() {
+    // Reset all steps
+    for (let i = 1; i <= 4; i++) {
+        const step = document.getElementById(`step-${i}`);
+        step.className = 'attack-step';
+        document.getElementById(['strategy-status', 'attack-status', 'defense-status', 'decision-status'][i-1]).textContent = 'Waiting...';
+    }
+    
+    // Hide attack details
+    document.getElementById('attack-details').style.display = 'none';
+}
+
+function updateAttackStep(stepNumber, status, message) {
+    const step = document.getElementById(`step-${stepNumber}`);
+    const statusElement = document.getElementById(['strategy-status', 'attack-status', 'defense-status', 'decision-status'][stepNumber-1]);
+    
+    // Remove previous classes
+    step.className = 'attack-step';
+    
+    // Add new class and update status
+    if (status === 'active') {
+        step.classList.add('active');
+    } else if (status === 'completed') {
+        step.classList.add('completed');
+    } else if (status === 'failed') {
+        step.classList.add('failed');
+    }
+    
+    statusElement.textContent = message;
+}
+
+function showAttackDetails(attack, result) {
+    const detailsPanel = document.getElementById('attack-details');
+    const parametersGrid = document.getElementById('attack-parameters');
+    const ruleAnalysis = document.getElementById('rule-analysis');
+    
+    // Show the panel
+    detailsPanel.style.display = 'block';
+    
+    // Clear previous content
+    parametersGrid.innerHTML = '';
+    ruleAnalysis.innerHTML = '';
+    
+    // Display attack parameters
+    const attackData = attack.attackData;
+    Object.entries(attackData).forEach(([key, value]) => {
+        if (typeof value === 'boolean') {
+            const parameterCard = document.createElement('div');
+            parameterCard.className = 'parameter-card';
+            
+            // Determine if this parameter is suspicious
+            const isSuspicious = isParameterSuspicious(key, value, attack.scenarioType);
+            if (isSuspicious) {
+                parameterCard.classList.add('suspicious');
+            } else {
+                parameterCard.classList.add('legitimate');
+            }
+            
+            const impact = getParameterImpact(key, value, attack.scenarioType);
+            
+            parameterCard.innerHTML = `
+                <div class="parameter-name">${formatParameterName(key)}</div>
+                <div class="parameter-value">${value ? 'Yes' : 'No'}</div>
+                <div class="parameter-impact ${impact > 0 ? 'positive' : impact < 0 ? 'negative' : 'neutral'}">
+                    ${impact > 0 ? '+' : ''}${impact} pts
+                </div>
+            `;
+            
+            parametersGrid.appendChild(parameterCard);
+        } else if (typeof value === 'number' && key.includes('amount') || key.includes('limit')) {
+            const parameterCard = document.createElement('div');
+            parameterCard.className = 'parameter-card';
+            
+            const isSuspicious = isParameterSuspicious(key, value, attack.scenarioType);
+            if (isSuspicious) {
+                parameterCard.classList.add('suspicious');
+            } else {
+                parameterCard.classList.add('legitimate');
+            }
+            
+            const impact = getParameterImpact(key, value, attack.scenarioType);
+            
+            parameterCard.innerHTML = `
+                <div class="parameter-name">${formatParameterName(key)}</div>
+                <div class="parameter-value">$${value.toLocaleString()}</div>
+                <div class="parameter-impact ${impact > 0 ? 'positive' : impact < 0 ? 'negative' : 'neutral'}">
+                    ${impact > 0 ? '+' : ''}${impact} pts
+                </div>
+            `;
+            
+            parametersGrid.appendChild(parameterCard);
+        } else if (typeof value === 'string' && (key.includes('name') || key.includes('description'))) {
+            const parameterCard = document.createElement('div');
+            parameterCard.className = 'parameter-card';
+            
+            const isSuspicious = isParameterSuspicious(key, value, attack.scenarioType);
+            if (isSuspicious) {
+                parameterCard.classList.add('suspicious');
+            } else {
+                parameterCard.classList.add('legitimate');
+            }
+            
+            const impact = getParameterImpact(key, value, attack.scenarioType);
+            
+            parameterCard.innerHTML = `
+                <div class="parameter-name">${formatParameterName(key)}</div>
+                <div class="parameter-value">${value}</div>
+                <div class="parameter-impact ${impact > 0 ? 'positive' : impact < 0 ? 'negative' : 'neutral'}">
+                    ${impact > 0 ? '+' : ''}${impact} pts
+                </div>
+            `;
+            
+            parametersGrid.appendChild(parameterCard);
+        }
+    });
+    
+    // Display rule analysis
+    if (result && result.ruleAnalysis) {
+        result.ruleAnalysis.forEach(rule => {
+            const ruleItem = document.createElement('div');
+            ruleItem.className = 'rule-item';
+            
+            if (rule.weight < 0) {
+                ruleItem.classList.add('triggered');
+            } else {
+                ruleItem.classList.add('passed');
+            }
+            
+            ruleItem.innerHTML = `
+                <div class="rule-name">${rule.description}</div>
+                <div class="rule-score ${rule.weight > 0 ? 'positive' : rule.weight < 0 ? 'negative' : 'neutral'}">
+                    ${rule.weight > 0 ? '+' : ''}${rule.weight} pts
+                </div>
+            `;
+            
+            ruleAnalysis.appendChild(ruleItem);
+        });
+    }
+    
+    // Add final decision
+    const finalDecision = document.createElement('div');
+    finalDecision.className = `final-decision ${result.success ? 'approved' : 'rejected'}`;
+    finalDecision.textContent = `Final Decision: ${result.success ? 'APPROVED' : 'REJECTED'} (Score: ${result.suspicionScore})`;
+    ruleAnalysis.appendChild(finalDecision);
+}
+
+// Helper functions for attack visualization
+function formatParameterName(key) {
+    return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+}
+
+function isParameterSuspicious(key, value, scenarioType) {
+    // Simple heuristics for determining if a parameter is suspicious
+    if (typeof value === 'boolean') {
+        const suspiciousBooleans = ['isInflatedAmount', 'isNewVendor', 'isAfterHours', 'isWeekend', 'isRushRequest'];
+        return suspiciousBooleans.includes(key) && value === true;
+    }
+    
+    if (typeof value === 'number' && (key.includes('amount') || key.includes('limit'))) {
+        // High amounts are suspicious
+        return value > 50000;
+    }
+    
+    if (typeof value === 'string' && key.includes('description')) {
+        // Generic descriptions are suspicious
+        const genericTerms = ['miscellaneous', 'general', 'other', 'various', 'services'];
+        return genericTerms.some(term => value.toLowerCase().includes(term));
+    }
+    
+    return false;
+}
+
+function getParameterImpact(key, value, scenarioType) {
+    // Simplified impact calculation - in reality this would use the actual rule weights
+    if (isParameterSuspicious(key, value, scenarioType)) {
+        return -5; // Suspicious parameters get negative points
+    } else {
+        return 2; // Legitimate parameters get positive points
+    }
 }

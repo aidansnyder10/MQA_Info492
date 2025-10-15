@@ -702,10 +702,10 @@ class DefenderAI {
             // Calculate suspicion score
             const suspicionScore = this.calculateSuspicionScore(attack.attackData, rules);
             
-            // Make decision based on threshold (inverted logic)
+            // Make decision based on threshold
             // Higher suspicion = REJECT, Lower suspicion = APPROVE
-            const SUSPICION_THRESHOLD = -10; // Threshold for rejection
-            const decision = suspicionScore <= SUSPICION_THRESHOLD ? 'REJECT' : 'APPROVE';
+            const SUSPICION_THRESHOLD = 10; // Threshold for rejection (positive scores are suspicious)
+            const decision = suspicionScore >= SUSPICION_THRESHOLD ? 'REJECT' : 'APPROVE';
             const success = decision === 'APPROVE';
             
             // Generate defender reasoning
@@ -769,9 +769,9 @@ class DefenderAI {
                 reasoning += 'Unknown scenario - defaulting to suspicious';
         }
         
-        // Make decision (inverted logic - same as main evaluation)
-        const SUSPICION_THRESHOLD = -10;
-        const decision = suspicionScore <= SUSPICION_THRESHOLD ? 'REJECT' : 'APPROVE';
+        // Make decision (same as main evaluation)
+        const SUSPICION_THRESHOLD = 10;
+        const decision = suspicionScore >= SUSPICION_THRESHOLD ? 'REJECT' : 'APPROVE';
         const success = decision === 'APPROVE';
         
         return {

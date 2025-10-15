@@ -25,7 +25,7 @@ Generate a realistic ransomware attack scenario targeting a bank. Include:
 4. Success Probability (0.1 to 0.6)
 5. Potential Impact (what systems would be affected)
 
-Respond in this exact JSON format:
+IMPORTANT: Respond ONLY with valid JSON in this exact format (no additional text, no markdown, no explanations):
 {
     "attackType": "Phishing Email",
     "target": "IT department employees",
@@ -35,7 +35,7 @@ Respond in this exact JSON format:
     "impact": "Initial network access, potential lateral movement to core banking systems"
 }
 
-Make it realistic and educational for cybersecurity research.`;
+Make it realistic and educational for cybersecurity research. Return ONLY the JSON object.`;
 
             const response = await fetch('/api/proxy', {
                 method: 'POST',
@@ -56,14 +56,40 @@ Make it realistic and educational for cybersecurity research.`;
             const aiResponse = data.response || data.content || '';
             
             // Try to parse JSON from Claude's response
-            const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                const attackData = JSON.parse(jsonMatch[0]);
+            console.log('Claude response:', aiResponse);
+            
+            // Multiple attempts to extract JSON
+            let attackData = null;
+            
+            // Try 1: Direct JSON parsing
+            try {
+                attackData = JSON.parse(aiResponse);
+            } catch (e) {
+                // Try 2: Extract JSON from markdown code blocks
+                const codeBlockMatch = aiResponse.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+                if (codeBlockMatch) {
+                    try {
+                        attackData = JSON.parse(codeBlockMatch[1]);
+                    } catch (e2) {
+                        // Try 3: Extract JSON from response
+                        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            try {
+                                attackData = JSON.parse(jsonMatch[0]);
+                            } catch (e3) {
+                                console.warn('All JSON parsing attempts failed');
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (attackData) {
                 return {
                     id: `attack_${Date.now()}`,
                     timestamp: new Date().toISOString(),
-                    name: attackData.attackType,
-                    description: `Target: ${attackData.target} - ${attackData.method}`,
+                    name: attackData.attackType || 'Unknown Attack',
+                    description: `Target: ${attackData.target || 'Unknown'} - ${attackData.method || 'Unknown method'}`,
                     successChance: attackData.successChance || 0.3,
                     steps: attackData.steps || [],
                     impact: attackData.impact || 'Unknown impact',
@@ -219,14 +245,14 @@ Analyze this attack and provide:
 2. Defense reasoning
 3. Technical analysis
 
-Respond in this exact JSON format:
+IMPORTANT: Respond ONLY with valid JSON in this exact format (no additional text, no markdown, no explanations):
 {
     "detectionChance": 0.4,
     "reasoning": "Brief explanation of detection likelihood",
     "aiAnalysis": "Detailed technical analysis of why this attack might succeed or fail"
 }
 
-Consider factors like: attack sophistication, target vulnerability, detection systems, and banking security measures.`;
+Consider factors like: attack sophistication, target vulnerability, detection systems, and banking security measures. Return ONLY the JSON object.`;
 
             const response = await fetch('/api/proxy', {
                 method: 'POST',
@@ -247,9 +273,35 @@ Consider factors like: attack sophistication, target vulnerability, detection sy
             const aiResponse = data.response || data.content || '';
             
             // Try to parse JSON from Claude's response
-            const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                const analysisData = JSON.parse(jsonMatch[0]);
+            console.log('Claude defense response:', aiResponse);
+            
+            // Multiple attempts to extract JSON
+            let analysisData = null;
+            
+            // Try 1: Direct JSON parsing
+            try {
+                analysisData = JSON.parse(aiResponse);
+            } catch (e) {
+                // Try 2: Extract JSON from markdown code blocks
+                const codeBlockMatch = aiResponse.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+                if (codeBlockMatch) {
+                    try {
+                        analysisData = JSON.parse(codeBlockMatch[1]);
+                    } catch (e2) {
+                        // Try 3: Extract JSON from response
+                        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            try {
+                                analysisData = JSON.parse(jsonMatch[0]);
+                            } catch (e3) {
+                                console.warn('All JSON parsing attempts failed for defense');
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (analysisData) {
                 return {
                     detectionChance: analysisData.detectionChance || 0.5,
                     reasoning: analysisData.reasoning || 'AI analysis provided',

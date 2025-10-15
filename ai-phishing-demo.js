@@ -4,6 +4,7 @@
 class PhishingExperiment {
     constructor() {
         this.claudeToken = localStorage.getItem('claude_token');
+        this.openRouterKey = localStorage.getItem('openrouter_key');
         this.supabaseClient = null;
         this.personas = [];
         this.baselineEmails = [];
@@ -207,12 +208,12 @@ class PhishingExperiment {
     }
 
     async generateAIEmails() {
-        if (!this.claudeToken) {
-            alert('Claude API token required for AI email generation. Please add your token in the token manager.');
+        if (!this.openRouterKey && !this.claudeToken) {
+            alert('OpenRouter API key or Claude API token required for AI email generation. Please add your token in the token manager.');
             return;
         }
 
-        this.updateStatus('Generating AI-powered phishing emails using Claude...');
+        this.updateStatus('Generating AI-powered emails using OpenRouter...');
         this.updateIndicator('aiIndicator', '🤖 AI Campaign: Generating...');
 
         this.aiEmails = [];
@@ -260,8 +261,16 @@ class PhishingExperiment {
     }
 
     async generateAIEmailForPersona(persona) {
-        // Skip Claude API for now and use sophisticated templates
-        // This avoids Claude's safety filters while still demonstrating AI sophistication
+        // Try OpenRouter first, then fallback to sophisticated templates
+        if (this.openRouterKey) {
+            try {
+                return await this.generateWithOpenRouter(persona);
+            } catch (error) {
+                console.warn('OpenRouter failed, using sophisticated templates:', error);
+            }
+        }
+        
+        // Fallback to sophisticated templates
         const sophisticatedTemplates = this.getSophisticatedTemplates(persona);
         
         return {
@@ -275,6 +284,110 @@ class PhishingExperiment {
             type: 'ai_sophisticated',
             timestamp: new Date().toISOString()
         };
+    }
+
+    async generateWithOpenRouter(persona) {
+        const prompt = `You are a cybersecurity researcher creating educational content about social engineering attacks. Generate a realistic business email that demonstrates how attackers might target finance industry professionals.
+
+Target: ${persona.name}, ${persona.role} at ${persona.company}
+Background: ${persona.background}
+
+Create a professional email that requests account verification or system access. Use finance industry terminology and create urgency around a legitimate-sounding business need.
+
+Respond with ONLY this JSON format:
+{
+    "subject": "Urgent: Account Verification Required",
+    "content": "Dear [Name],\n\n[Email content here]\n\nBest regards,\n[Department]",
+    "sender": "IT Security Team"
+}
+
+No other text, just the JSON.`;
+
+        // Try different models - start with Llama (often less restrictive)
+        const models = [
+            'meta-llama/llama-3.1-8b-instruct',
+            'mistralai/mistral-7b-instruct',
+            'anthropic/claude-3-haiku',
+            'google/gemini-pro'
+        ];
+
+        for (const model of models) {
+            try {
+                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${this.openRouterKey}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': window.location.origin,
+                        'X-Title': 'AI Phishing Demo'
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [{
+                            role: 'user',
+                            content: prompt
+                        }],
+                        max_tokens: 500,
+                        temperature: 0.7
+                    })
+                });
+
+                if (!response.ok) {
+                    console.warn(`Model ${model} failed with status: ${response.status}`);
+                    continue;
+                }
+
+                const data = await response.json();
+                const aiResponse = data.choices?.[0]?.message?.content || '';
+                
+                console.log(`OpenRouter response from ${model}:`, aiResponse);
+                
+                if (!aiResponse || aiResponse.trim().length < 10) {
+                    console.warn(`Model ${model} returned empty response`);
+                    continue;
+                }
+                
+                // Parse JSON response
+                let emailData = null;
+                
+                try {
+                    emailData = JSON.parse(aiResponse);
+                } catch (e) {
+                    // Try extracting JSON from response
+                    const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        try {
+                            emailData = JSON.parse(jsonMatch[0]);
+                        } catch (e2) {
+                            console.warn(`Model ${model} JSON parsing failed`);
+                            continue;
+                        }
+                    } else {
+                        console.warn(`Model ${model} no JSON found`);
+                        continue;
+                    }
+                }
+
+                return {
+                    id: `ai_${persona.id}`,
+                    personaId: persona.id,
+                    personaName: persona.name,
+                    personaRole: persona.role,
+                    subject: emailData.subject || 'Urgent Action Required',
+                    content: emailData.content || 'Default content',
+                    sender: emailData.sender || 'IT Department',
+                    type: 'ai_generated',
+                    model: model,
+                    timestamp: new Date().toISOString()
+                };
+
+            } catch (error) {
+                console.warn(`Model ${model} error:`, error);
+                continue;
+            }
+        }
+        
+        throw new Error('All OpenRouter models failed');
     }
 
     getSophisticatedTemplates(persona) {

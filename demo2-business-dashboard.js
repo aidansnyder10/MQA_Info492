@@ -198,10 +198,10 @@ async function executeAIvsAIExperiment() {
         }
         
         // Step 2: Complete attack generation
-        updateAttackStep(2, 'completed', 'Attack generated');
+        updateAttackStep(2, 'completed', 'Generated');
         
         // Step 3: Start defense evaluation
-        updateAttackStep(3, 'active', 'Evaluating attack...');
+        updateAttackStep(3, 'active', 'Analyzing...');
         
         logAIActivity('Attack AI generated: ' + attack.scenarioType);
         logAIActivity('Attack reasoning: ' + attack.reasoning);
@@ -213,11 +213,11 @@ async function executeAIvsAIExperiment() {
         console.log('Main: DefenderAI evaluation result:', defense);
         
         // Step 3: Complete defense evaluation
-        updateAttackStep(3, 'completed', 'Evaluation complete');
+        updateAttackStep(3, 'completed', 'Complete');
         
         // Step 4: Show final decision
         updateAttackStep(4, defense.success ? 'completed' : 'failed', 
-                        defense.success ? 'APPROVED' : 'REJECTED');
+                        defense.success ? 'Approved' : 'Rejected');
         
         logAIActivity(`Defender AI decision: ${defense.decision} (Score: ${defense.suspicionScore})`);
         logAIActivity('Defender reasoning: ' + defense.reasoning);
@@ -395,7 +395,8 @@ function resetAttackVisualization() {
     for (let i = 1; i <= 4; i++) {
         const step = document.getElementById(`step-${i}`);
         step.className = 'attack-step';
-        document.getElementById(['strategy-status', 'attack-status', 'defense-status', 'decision-status'][i-1]).textContent = 'Waiting...';
+        const statusTexts = ['Initializing...', 'Processing...', 'Analyzing...', 'Evaluating...'];
+        document.getElementById(['strategy-status', 'attack-status', 'defense-status', 'decision-status'][i-1]).textContent = statusTexts[i-1];
     }
     
     // Hide attack details

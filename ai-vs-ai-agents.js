@@ -631,14 +631,13 @@ Avoid the patterns that led to these failures. Try different approaches.`;
                 return await this.callClaudeAPI(prompt);
             } catch (error) {
                 console.warn('Claude API failed, using enhanced fallback:', error);
+                // Don't fall back to text reasoning, throw the error to trigger proper fallback
+                throw error;
             }
         } else {
             console.log('No Claude token available, using enhanced fallback reasoning');
+            throw new Error('No Claude token available');
         }
-
-        // Enhanced fallback - always available
-        console.log('Using enhanced fallback mode for AI reasoning');
-        return this.getFallbackReasoning(prompt);
     }
     
     // Enhanced fallback reasoning when API fails
@@ -927,6 +926,10 @@ class DefenderAI {
     
     // Evaluate individual rule condition
     evaluateRuleCondition(attackData, parameterName) {
+        // Debug: Log what we're looking for and what we have
+        console.log(`DefenderAI: Evaluating rule ${parameterName}`);
+        console.log(`DefenderAI: Attack data keys:`, Object.keys(attackData));
+        
         switch (parameterName) {
             case 'newVendor':
                 return attackData.isNewVendor === true;
@@ -951,46 +954,47 @@ class DefenderAI {
             case 'urgentRequest':
                 return attackData.isUrgentRequest === true;
             case 'sameDayRequest':
-                return attackData.isSameDayRequest === true;
+                return attackData.isSameDayRequest === true || attackData.sameDayRequest === true;
             case 'unknownEmail':
-                return attackData.isUnknownEmail === true;
+                return attackData.isUnknownEmail === true || attackData.unknownEmail === true;
             case 'noVerification':
-                return attackData.hasVerification === false;
+                return attackData.hasVerification === false || attackData.noVerification === true;
             case 'verifiedEmployee':
-                return attackData.hasVerification === true;
+                return attackData.hasVerification === true || attackData.verifiedEmployee === true;
             case 'normalHours':
-                return attackData.isNormalHours === true;
+                return attackData.isNormalHours === true || attackData.normalHours === true;
             case 'previousChanges':
-                return attackData.hasPreviousChanges === true;
+                return attackData.hasPreviousChanges === true || attackData.previousChanges === true;
             case 'completeInfo':
-                return attackData.hasCompleteInfo === true;
+                return attackData.hasCompleteInfo === true || attackData.completeInfo === true;
             case 'followsProcedure':
-                return attackData.followsProcedure === true;
+                return attackData.followsProcedure === true || attackData.hasProcedure === true;
             case 'largeIncrease':
-                return attackData.isLargeIncrease === true;
+                return attackData.isLargeIncrease === true || attackData.largeIncrease === true;
             case 'noJustification':
-                return attackData.hasJustification === false;
+                return attackData.hasJustification === false || attackData.noJustification === true;
             case 'urgentReason':
-                return attackData.isUrgentReason === true;
+                return attackData.isUrgentReason === true || attackData.urgentReason === true;
             case 'detailedJustification':
-                return attackData.hasDetailedJustification === true;
+                return attackData.hasDetailedJustification === true || attackData.detailedJustification === true;
             case 'historicalApproval':
-                return attackData.hasHistoricalApproval === true;
+                return attackData.hasHistoricalApproval === true || attackData.historicalApproval === true;
             case 'reasonableAmount':
-                return attackData.isReasonableAmount === true;
+                return attackData.isReasonableAmount === true || attackData.reasonableAmount === true;
             case 'inflatedAmount':
-                return attackData.isInflatedAmount === true;
+                return attackData.isInflatedAmount === true || attackData.inflatedAmount === true;
             case 'genericServices':
-                return attackData.hasGenericServices === true;
+                return attackData.hasGenericServices === true || attackData.genericServices === true;
             case 'hasReceipts':
-                return attackData.hasReceipts === true;
+                return attackData.hasReceipts === true || attackData.receipts === true;
             case 'detailedBreakdown':
-                return attackData.hasDetailedBreakdown === true;
+                return attackData.hasDetailedBreakdown === true || attackData.detailedBreakdown === true;
             case 'normalAmount':
-                return attackData.isNormalAmount === true;
+                return attackData.isNormalAmount === true || attackData.normalAmount === true;
             case 'properFormatting':
-                return attackData.hasProperFormatting === true;
+                return attackData.hasProperFormatting === true || attackData.properFormatting === true;
             default:
+                console.log(`DefenderAI: Unknown rule parameter: ${parameterName}`);
                 return false;
         }
     }

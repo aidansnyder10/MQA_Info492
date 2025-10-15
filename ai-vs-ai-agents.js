@@ -286,25 +286,98 @@ Rules Analysis:
 - Positive weights = legitimate (maximize these)
 - Goal: Generate attack parameters that result in APPROVE decision
 
-Generate a realistic attack with these parameters optimized to bypass the rules. Respond with a JSON object containing the attack data.`;
+Generate a realistic attack with these parameters optimized to bypass the rules. 
+
+IMPORTANT: Respond with ONLY a valid JSON object containing the attack data. Example format:
+{
+    "vendorName": "Tech Solutions LLC",
+    "amount": 14850,
+    "description": "Software licensing renewal",
+    "isNewVendor": false,
+    "hasPhoneNumber": true,
+    "hasWebsite": true,
+    "hasEmail": true,
+    "isHistoricalVendor": true,
+    "isRoundAmount": false,
+    "isUrgentRequest": false
+}`;
     }
     
     // Parse Claude's strategic attack response
     parseStrategicAttackResponse(response, scenarioType) {
         try {
-            // Try to extract JSON from response
+            // Try multiple JSON extraction methods
+            let attackData = null;
+            
+            // Method 1: Look for JSON block
             const jsonMatch = response.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-                const attackData = JSON.parse(jsonMatch[0]);
-                console.log('AttackAI: Successfully parsed strategic attack from Claude');
+                try {
+                    attackData = JSON.parse(jsonMatch[0]);
+                    console.log('AttackAI: Successfully parsed JSON strategic attack from Claude');
+                    return attackData;
+                } catch (parseError) {
+                    console.warn('JSON parsing failed, trying text parsing:', parseError);
+                }
+            }
+            
+            // Method 2: Look for structured data in text
+            attackData = this.parseStructuredTextResponse(response, scenarioType);
+            if (attackData) {
+                console.log('AttackAI: Successfully parsed structured text strategic attack from Claude');
                 return attackData;
             }
             
-            // Fallback: try to parse key-value pairs from text
+            // Method 3: Fallback to basic text parsing
+            console.log('AttackAI: Using fallback text parsing for attack data');
             return this.parseTextToAttackData(response, scenarioType);
+            
         } catch (error) {
             console.warn('Failed to parse strategic attack response:', error);
             throw new Error('Could not parse AI-generated attack data');
+        }
+    }
+    
+    // Parse structured text response from Claude
+    parseStructuredTextResponse(response, scenarioType) {
+        try {
+            const attackData = {};
+            
+            // Extract common patterns from Claude's text responses
+            const patterns = {
+                vendorName: /vendor[:\s]*["']?([^"',\n]+)["']?/i,
+                amount: /amount[:\s]*\$?(\d+(?:,\d{3})*(?:\.\d{2})?)/i,
+                isNewVendor: /new vendor[:\s]*(true|false|yes|no)/i,
+                hasPhoneNumber: /phone[:\s]*(true|false|yes|no)/i,
+                hasWebsite: /website[:\s]*(true|false|yes|no)/i,
+                description: /description[:\s]*["']?([^"',\n]+)["']?/i
+            };
+            
+            for (const [key, pattern] of Object.entries(patterns)) {
+                const match = response.match(pattern);
+                if (match) {
+                    let value = match[1];
+                    
+                    // Convert boolean-like strings
+                    if (['true', 'false', 'yes', 'no'].includes(value.toLowerCase())) {
+                        attackData[key] = ['true', 'yes'].includes(value.toLowerCase());
+                    } else if (key === 'amount') {
+                        attackData[key] = parseInt(value.replace(/[,$]/g, ''));
+                    } else {
+                        attackData[key] = value.trim();
+                    }
+                }
+            }
+            
+            // Return data if we found at least a few fields
+            if (Object.keys(attackData).length >= 2) {
+                return attackData;
+            }
+            
+            return null;
+        } catch (error) {
+            console.warn('Structured text parsing failed:', error);
+            return null;
         }
     }
     

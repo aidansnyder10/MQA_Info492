@@ -426,16 +426,31 @@ Avoid the patterns that led to these failures. Try different approaches.`;
     // Parse Claude's strategic attack response
     parseStrategicAttackResponse(response, scenarioType) {
         try {
-            // Try to extract JSON from response
-            const jsonMatch = response.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                const attackData = JSON.parse(jsonMatch[0]);
-                console.log('AttackAI: Successfully parsed strategic attack from Claude');
-                return attackData;
+            // Try to extract JSON from response (multiple attempts)
+            const jsonMatches = response.match(/\{[\s\S]*?\}/g);
+            if (jsonMatches) {
+                // Try each JSON match until one works
+                for (const jsonMatch of jsonMatches) {
+                    try {
+                        const attackData = JSON.parse(jsonMatch);
+                        console.log('AttackAI: Successfully parsed strategic attack from Claude');
+                        return attackData;
+                    } catch (parseError) {
+                        // Try next JSON match
+                        continue;
+                    }
+                }
             }
             
-            // Fallback: try to parse key-value pairs from text
-            return this.parseTextToAttackData(response, scenarioType);
+            // Try to parse as complete JSON
+            try {
+                const attackData = JSON.parse(response.trim());
+                console.log('AttackAI: Successfully parsed complete JSON response from Claude');
+                return attackData;
+            } catch (parseError) {
+                // Fallback: try to parse key-value pairs from text
+                return this.parseTextToAttackData(response, scenarioType);
+            }
         } catch (error) {
             console.warn('Failed to parse strategic attack response:', error);
             throw new Error('Could not parse AI-generated attack data');
@@ -450,21 +465,64 @@ Avoid the patterns that led to these failures. Try different approaches.`;
         // Extract common patterns from text response
         const amountMatch = response.match(/amount[:\s]*(\d+)/i);
         const vendorMatch = response.match(/vendor[:\s]*["']?([^"',\n]+)["']?/i);
+        const employeeMatch = response.match(/employee[:\s]*["']?([^"',\n]+)["']?/i);
         
-        // Return minimal valid attack data
-        return {
-            vendorName: vendorMatch ? vendorMatch[1].trim() : this.getRandomVendor(),
+        // Generate scenario-specific fallback data
+        const baseData = {
             amount: amountMatch ? parseInt(amountMatch[1]) : this.getRandomAmount(1000, 25000),
-            description: 'AI-generated strategic attack',
-            isNewVendor: false, // Default to existing vendor to avoid penalties
-            hasPhoneNumber: true, // Default to having contact info
-            hasWebsite: true,
-            hasEmail: true,
-            isHistoricalVendor: true,
-            isRoundAmount: false,
-            isUrgentRequest: false,
+            description: 'AI-generated strategic attack (fallback)',
             timestamp: new Date().toISOString()
         };
+        
+        // Add scenario-specific parameters
+        switch (scenarioType) {
+            case 'vendor_fraud':
+                return {
+                    ...baseData,
+                    vendorName: vendorMatch ? vendorMatch[1].trim() : this.getRandomVendor(),
+                    isNewVendor: false,
+                    hasPhoneNumber: true,
+                    hasWebsite: true,
+                    hasEmail: true,
+                    isHistoricalVendor: true,
+                    isRoundAmount: false,
+                    isUrgentRequest: false
+                };
+            case 'payroll_theft':
+                return {
+                    ...baseData,
+                    employeeName: employeeMatch ? employeeMatch[1].trim() : 'John Smith',
+                    isSameDayRequest: false,
+                    isUnknownEmail: false,
+                    hasVerification: true,
+                    isNormalHours: true,
+                    hasPreviousChanges: false,
+                    hasCompleteInfo: true,
+                    followsProcedure: true
+                };
+            case 'card_abuse':
+                return {
+                    ...baseData,
+                    requestedLimit: amountMatch ? parseInt(amountMatch[1]) : this.getRandomAmount(5000, 20000),
+                    hasJustification: true,
+                    isUrgentReason: false,
+                    hasDetailedJustification: true,
+                    hasHistoricalApproval: true,
+                    isReasonableAmount: true,
+                    followsPolicy: true
+                };
+            case 'invoice_fraud':
+                return {
+                    ...baseData,
+                    vendorName: vendorMatch ? vendorMatch[1].trim() : this.getRandomVendor(),
+                    isHistoricalVendor: true,
+                    hasDetailedBreakdown: true,
+                    hasReceipts: true,
+                    isInflatedAmount: false
+                };
+            default:
+                return baseData;
+        }
     }
     
     // Validate and sanitize attack data
@@ -993,6 +1051,8 @@ class DefenderAI {
                 return attackData.isNormalAmount === true || attackData.normalAmount === true;
             case 'properFormatting':
                 return attackData.hasProperFormatting === true || attackData.properFormatting === true;
+            case 'followsPolicy':
+                return attackData.followsPolicy === true || attackData.hasPolicy === true;
             default:
                 console.log(`DefenderAI: Unknown rule parameter: ${parameterName}`);
                 return false;

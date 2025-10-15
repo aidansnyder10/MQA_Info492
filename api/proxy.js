@@ -18,8 +18,50 @@ export default async function handler(req, res) {
     }
     
     try {
-        const { model, inputs, parameters, token } = req.body;
+        const { provider, model, inputs, parameters, token, claudeToken } = req.body;
         
+        // Handle Claude API requests
+        if (provider === 'claude') {
+            if (!claudeToken) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'Claude API token required',
+                    message: 'Please add your Claude API token in the token manager.',
+                    status: 401
+                });
+            }
+
+            console.log('Vercel proxy: Handling Claude API request');
+            
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'x-api-key': claudeToken,
+                    'Content-Type': 'application/json',
+                    'anthropic-version': '2023-06-01'
+                },
+                body: JSON.stringify({
+                    model: model || 'claude-3-haiku-20240307',
+                    max_tokens: 150,
+                    messages: [
+                        {
+                            role: 'user',
+                            content: inputs
+                        }
+                    ]
+                })
+            });
+
+            const data = await response.json();
+            
+            return res.status(response.status).json({
+                success: response.ok,
+                data: data,
+                status: response.status
+            });
+        }
+        
+        // Handle Hugging Face API requests (original logic)
         if (!model || !inputs) {
             res.status(400).json({ error: 'Missing required parameters' });
             return;

@@ -41,10 +41,12 @@ window.SecureBankConfig = {
             apiUrl: 'https://api-inference.huggingface.co/models/',
             // Models that are actually available on Hugging Face Inference API
             models: {
-                'gpt2': 'Text Generation (GPT-2 - 124M parameters)',
-                'Qwen/Qwen3-0.6B': 'Text Generation (Qwen3-0.6B - Advanced reasoning)'
+                'microsoft/DialoGPT-medium': 'Conversational AI (Medium Size)',
+                'gpt2': 'Text Generation (GPT-2)',
+                'distilgpt2': 'Text Generation (Distilled GPT-2)'
             },
             defaultModel: 'enhanced-fallback', // Use enhanced fallback as default - always works
+            useFallbackOnly: true, // Skip API calls and use enhanced reasoning
             // Optional: Add your free Hugging Face token for higher rate limits
             // Get free token at: https://huggingface.co/settings/tokens
             // Replace with your actual token: 'hf_your_token_here'

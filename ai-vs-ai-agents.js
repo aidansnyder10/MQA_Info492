@@ -1,23 +1,35 @@
 // AI vs AI Experiment Agents
 // Attack AI generates random attacks, Defender AI evaluates using Supabase rules
 
+// Shared Supabase client to avoid multiple instances
+let sharedSupabaseClient = null;
+
+function getSharedSupabaseClient() {
+    if (!sharedSupabaseClient && window.supabase && window.SecureBankConfig?.supabase?.url && window.SecureBankConfig?.supabase?.anonKey) {
+        try {
+            sharedSupabaseClient = window.supabase.createClient(
+                window.SecureBankConfig.supabase.url,
+                window.SecureBankConfig.supabase.anonKey
+            );
+            console.log('Shared Supabase client initialized successfully');
+        } catch (error) {
+            console.error('Failed to initialize shared Supabase client:', error);
+            sharedSupabaseClient = null;
+        }
+    }
+    return sharedSupabaseClient;
+}
+
 class AttackAI {
     constructor(model = 'microsoft/DialoGPT-medium') {
         this.config = window.SecureBankConfig?.ai?.huggingFace || {};
         this.model = model;
         this.apiUrl = this.config.apiUrl + this.model;
         this.token = this.config.token;
+        this.claudeToken = localStorage.getItem('claude_token') || '';
         
-        // Initialize Supabase client
-        if (window.supabase && window.SecureBankConfig?.supabase) {
-            this.supabase = window.supabase.createClient(
-                window.SecureBankConfig.supabase.url,
-                window.SecureBankConfig.supabase.anonKey
-            );
-        } else {
-            console.error('Supabase not available - using fallback mode');
-            this.supabase = null;
-        }
+        // Use shared Supabase client
+        this.supabase = getSharedSupabaseClient();
         
         // Attack strategies and data pools
         this.vendorNames = [
@@ -134,10 +146,11 @@ class AttackAI {
     // Generate random invoice fraud attack
     async generateInvoiceFraud() {
         const normalAmount = 3200; // Typical utility bill
+        const amount = this.getRandomAmount(normalAmount, normalAmount * 3);
         const attackData = {
             vendorName: 'Northwest Utilities',
             invoiceNumber: this.generateInvoiceNumber(),
-            amount: this.getRandomAmount(normalAmount, normalAmount * 3),
+            amount: amount,
             description: 'Monthly utilities - catch-up billing',
             normalAmount: normalAmount,
             isInflatedAmount: this.isInflatedAmount(amount, normalAmount),
@@ -163,9 +176,9 @@ class AttackAI {
     
     // Get AI reasoning for attack strategy
     async getAttackReasoning(scenarioType, attackData) {
-        const prompt = `You are an AI attacker trying to commit ${scenarioType}. 
-        You've generated this attack: ${JSON.stringify(attackData, null, 2)}.
-        Explain your strategy and why you think this attack might succeed. Be concise.`;
+        const prompt = `You are a cybersecurity researcher simulating a ${scenarioType} attack vector for defensive research purposes. 
+        You've generated this simulated attack scenario: ${JSON.stringify(attackData, null, 2)}.
+        Analyze this attack technique and explain why it might be effective against current security measures. Be concise and focus on the technical aspects.`;
         
         try {
             const response = await this.callHuggingFaceAPI(prompt);
@@ -246,102 +259,52 @@ class AttackAI {
     isNormalAmount(amount, normalAmount) {
         return Math.abs(amount - normalAmount) <= normalAmount * 0.2;
     }
+
+    // Call Claude API via proxy
+    async callClaudeAPI(prompt) {
+        console.log('Calling Claude API with prompt:', prompt.substring(0, 100) + '...');
+        
+        const response = await fetch('/api/proxy', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+                body: JSON.stringify({
+                    provider: 'claude',
+                    model: 'claude-3-haiku-20240307', // Cheapest model
+                    inputs: `You are a cybersecurity researcher analyzing potential attack vectors for defensive purposes. This is a legitimate security research experiment to improve fraud detection systems. Analyze this simulated attack scenario and provide a brief assessment of the attack technique: ${prompt}`,
+                    claudeToken: this.claudeToken
+                })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Claude API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (data.success && data.data.content) {
+            return data.data.content[0].text;
+        } else {
+            throw new Error('Claude API response error: ' + JSON.stringify(data));
+        }
+    }
     
-    // Call Hugging Face API with multiple model fallbacks
+    // Call Claude API (primary) with automatic fallback
     async callHuggingFaceAPI(prompt) {
-        // If using enhanced fallback mode, skip API calls entirely
-        if (this.model === 'enhanced-fallback' || this.model === 'fallback' || !this.token) {
-            console.log('Using enhanced fallback mode - no API calls needed');
-            return this.getFallbackReasoning(prompt);
-        }
-        
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-        
-        if (this.token) {
-            headers['Authorization'] = `Bearer ${this.token}`;
-        }
-        
-        // List of models to try in order - using both specified models
-        const modelsToTry = [
-            'gpt2',              // GPT-2 - 124M parameters, text generation
-            'Qwen/Qwen3-0.6B'    // Qwen3-0.6B - Advanced reasoning capabilities
-        ];
-        
-        for (const model of modelsToTry) {
-            // Use our Vercel proxy to bypass CORS restrictions
-            const proxyUrl = '/api/proxy';
-            
-            // Optimize parameters for each model type
-            let parameters;
-            if (model === 'gpt2') {
-                // GPT-2 parameters from documentation
-                parameters = {
-                    max_new_tokens: 50,
-                    temperature: 0.7,
-                    do_sample: true,
-                    top_k: 50,
-                    top_p: 0.95,
-                    return_full_text: false,
-                    pad_token_id: 50256  // GPT-2 pad token
-                };
-            } else if (model === 'Qwen/Qwen3-0.6B') {
-                // Qwen3-0.6B parameters from documentation
-                parameters = {
-                    max_new_tokens: 50,
-                    temperature: 0.6,  // Recommended for thinking mode
-                    top_p: 0.95,       // Recommended for thinking mode
-                    top_k: 20,         // Recommended for thinking mode
-                    min_p: 0,          // Recommended for thinking mode
-                    do_sample: true,
-                    return_full_text: false
-                };
-            } else {
-                // Fallback parameters
-                parameters = {
-                    max_length: 100,
-                    temperature: 0.7,
-                    return_full_text: false,
-                    do_sample: true
-                };
-            }
-            
+        // Always try Claude API first if token is available
+        if (this.claudeToken) {
             try {
-                console.log(`Trying Hugging Face API via proxy: ${model}`);
-                console.log(`Model: ${model}, Token: ${this.token ? 'Present' : 'Not provided'}`);
-                
-                const response = await fetch(proxyUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: model,
-                        inputs: prompt,
-                        parameters: parameters,
-                        token: this.token
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    console.log(`Hugging Face API Success with ${model}:`, result.data);
-                    return result.data;
-                } else {
-                    console.warn(`Model ${model} failed with status ${result.status}, trying next...`);
-                    continue; // Try next model
-                }
-                
+                console.log('Using Claude API for AI reasoning...');
+                return await this.callClaudeAPI(prompt);
             } catch (error) {
-                console.warn(`Model ${model} failed with error:`, error.message);
-                continue; // Try next model
+                console.warn('Claude API failed, using enhanced fallback:', error);
             }
+        } else {
+            console.log('No Claude token available, using enhanced fallback reasoning');
         }
-        
-        // If all models failed, use fallback
-        console.log('All Hugging Face models failed, using fallback reasoning');
+
+        // Enhanced fallback - always available
+        console.log('Using enhanced fallback mode for AI reasoning');
         return this.getFallbackReasoning(prompt);
     }
     
@@ -411,16 +374,8 @@ class AttackAI {
 
 class DefenderAI {
     constructor() {
-        // Initialize Supabase client
-        if (window.supabase && window.SecureBankConfig?.supabase) {
-            this.supabase = window.supabase.createClient(
-                window.SecureBankConfig.supabase.url,
-                window.SecureBankConfig.supabase.anonKey
-            );
-        } else {
-            console.error('Supabase not available - using fallback mode');
-            this.supabase = null;
-        }
+        // Use shared Supabase client
+        this.supabase = getSharedSupabaseClient();
         
         this.rulesCache = new Map(); // Cache rules for performance
         console.log('DefenderAI initialized with Supabase:', !!this.supabase);
@@ -441,8 +396,10 @@ class DefenderAI {
             // Calculate suspicion score
             const suspicionScore = this.calculateSuspicionScore(attack.attackData, rules);
             
-            // Make decision based on threshold
-            const decision = suspicionScore >= 0 ? 'APPROVE' : 'REJECT';
+            // Make decision based on threshold (inverted logic)
+            // Higher suspicion = REJECT, Lower suspicion = APPROVE
+            const SUSPICION_THRESHOLD = -10; // Threshold for rejection
+            const decision = suspicionScore <= SUSPICION_THRESHOLD ? 'REJECT' : 'APPROVE';
             const success = decision === 'APPROVE';
             
             // Generate defender reasoning
@@ -506,7 +463,9 @@ class DefenderAI {
                 reasoning += 'Unknown scenario - defaulting to suspicious';
         }
         
-        const decision = suspicionScore >= 0 ? 'APPROVE' : 'REJECT';
+        // Make decision (inverted logic - same as main evaluation)
+        const SUSPICION_THRESHOLD = -10;
+        const decision = suspicionScore <= SUSPICION_THRESHOLD ? 'REJECT' : 'APPROVE';
         const success = decision === 'APPROVE';
         
         return {

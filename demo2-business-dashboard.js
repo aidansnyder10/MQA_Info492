@@ -28,8 +28,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize experiment state
     initializeExperiment();
     
-    // Initialize AI Agent
-    initializeAIAgent();
+    // Initialize AI Agent after a short delay to ensure config is loaded
+    setTimeout(() => {
+        initializeAIAgent();
+    }, 100);
 });
 
 function filterInvoices() {
@@ -133,10 +135,10 @@ function startExperiment() {
         intensity: intensity
     };
     
-    // Reinitialize AI agents with selected model
+    // Reinitialize AI agents - always use Claude with automatic fallback
     if (attackAI) {
-        attackAI.model = model;
-        attackAI.apiUrl = attackAI.config.apiUrl + model;
+        attackAI.model = 'claude-haiku';
+        attackAI.claudeToken = localStorage.getItem('claude_token') || '';
     }
     
     updateExperimentStatus('AI vs AI experiment running...');

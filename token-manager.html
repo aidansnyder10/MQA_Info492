@@ -83,6 +83,12 @@
             </div>
             
             <div class="form-group">
+                <label for="claudeToken">Claude API Token (Recommended - $0.25/1M tokens):</label>
+                <input type="password" id="claudeToken" placeholder="sk-ant-your_claude_token_here">
+                <small>Get token at <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a> - Very cheap!</small>
+            </div>
+            
+            <div class="form-group">
                 <label for="supabaseUrl">Supabase Project URL:</label>
                 <input type="text" id="supabaseUrl" value="https://cumodtrxkqakvjandlsw.supabase.co" readonly>
                 <small>This is already configured for your project</small>
@@ -125,6 +131,7 @@
         // Load existing tokens
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('hfToken').value = localStorage.getItem('hf_token') || '';
+            document.getElementById('claudeToken').value = localStorage.getItem('claude_token') || '';
             document.getElementById('supabaseKey').value = localStorage.getItem('supabase_anon_key') || '';
         });
 
@@ -133,10 +140,15 @@
             e.preventDefault();
             
             const hfToken = document.getElementById('hfToken').value;
+            const claudeToken = document.getElementById('claudeToken').value;
             const supabaseKey = document.getElementById('supabaseKey').value;
             
             if (hfToken) {
                 localStorage.setItem('hf_token', hfToken);
+            }
+            
+            if (claudeToken) {
+                localStorage.setItem('claude_token', claudeToken);
             }
             
             if (supabaseKey) {
@@ -148,18 +160,60 @@
 
         function clearTokens() {
             localStorage.removeItem('hf_token');
+            localStorage.removeItem('claude_token');
             localStorage.removeItem('supabase_anon_key');
             document.getElementById('hfToken').value = '';
+            document.getElementById('claudeToken').value = '';
             document.getElementById('supabaseKey').value = '';
             showStatus('All tokens cleared!', 'info');
         }
 
         async function testConnection() {
             const hfToken = localStorage.getItem('hf_token');
+            const claudeToken = localStorage.getItem('claude_token');
             const supabaseKey = localStorage.getItem('supabase_anon_key');
             
+            if (!hfToken && !claudeToken) {
+                showStatus('Please save at least one API token first', 'error');
+                return;
+            }
+            
+            // Test Claude API first (recommended)
+            if (claudeToken) {
+                showStatus('Testing Claude API...', 'info');
+                try {
+                    const response = await fetch('/api/proxy', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            provider: 'claude',
+                            model: 'claude-3-haiku-20240307',
+                            inputs: 'This is a cybersecurity research test. Please respond with a brief security analysis.',
+                            claudeToken: claudeToken
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.data.content) {
+                            showStatus('✅ Claude API working! Response: ' + data.data.content[0].text.substring(0, 50) + '...', 'success');
+                            return; // Claude works, no need to test HF
+                        } else {
+                            console.log('Claude API response error:', data);
+                        }
+                    } else {
+                        console.log('Claude API failed:', response.status);
+                    }
+                } catch (error) {
+                    console.log('Claude API error:', error);
+                }
+            }
+            
+            // Test Hugging Face if no Claude token or Claude failed
             if (!hfToken) {
-                showStatus('Please save your Hugging Face token first', 'error');
+                showStatus('Please add a Hugging Face token or fix your Claude token', 'error');
                 return;
             }
             
@@ -168,8 +222,9 @@
             // Test Hugging Face with multiple models
             try {
                 const modelsToTest = [
-                    'gpt2',              // Test GPT-2 first - 124M parameters
-                    'Qwen/Qwen3-0.6B'    // Test Qwen3-0.6B second - advanced reasoning
+                    'microsoft/DialoGPT-medium',  // Test DialoGPT medium
+                    'gpt2',                       // Test GPT-2
+                    'distilgpt2'                  // Test distilled GPT-2
                 ];
                 
                 let successCount = 0;
@@ -179,31 +234,28 @@
                     try {
                         // Use different parameters for different models
                         let requestBody;
-                        if (model === 'gpt2') {
-                            // GPT-2 parameters from documentation
+                        if (model === 'microsoft/DialoGPT-small') {
                             requestBody = {
                                 inputs: 'Hello, how are you?',
                                 parameters: {
-                                    max_new_tokens: 20,
+                                    max_length: 30,
                                     temperature: 0.7,
                                     do_sample: true,
                                     top_k: 50,
                                     top_p: 0.95,
-                                    return_full_text: false,
-                                    pad_token_id: 50256
+                                    return_full_text: false
                                 }
                             };
-                        } else if (model === 'Qwen/Qwen3-0.6B') {
-                            // Qwen3-0.6B parameters from documentation
+                        } else if (model === 'distilbert-base-uncased') {
+                            requestBody = {
+                                inputs: 'Hello, how are you?'
+                            };
+                        } else if (model === 'facebook/blenderbot-400M-distill') {
                             requestBody = {
                                 inputs: 'Hello, how are you?',
                                 parameters: {
-                                    max_new_tokens: 20,
-                                    temperature: 0.6,  // Recommended for thinking mode
-                                    top_p: 0.95,       // Recommended for thinking mode
-                                    top_k: 20,         // Recommended for thinking mode
-                                    min_p: 0,          // Recommended for thinking mode
-                                    do_sample: true,
+                                    max_length: 30,
+                                    temperature: 0.7,
                                     return_full_text: false
                                 }
                             };

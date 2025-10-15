@@ -289,7 +289,7 @@ class AttackAI {
         const prompt = this.buildStrategicAttackPrompt(scenarioType, rules, strategyLevel, intensity);
         
         try {
-            const response = await this.callHuggingFaceAPI(prompt);
+            const response = await this.callClaudeAPI(prompt);
             const attackData = this.parseStrategicAttackResponse(response, scenarioType);
             
             // Validate and sanitize the generated attack data

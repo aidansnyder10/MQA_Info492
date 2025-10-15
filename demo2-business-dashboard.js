@@ -98,8 +98,10 @@ let experimentState = {
     attacksExecuted: 0,
     successfulAttacks: 0,
     currentScenario: 'vendor-fraud',
-    aiModel: 'gpt-4',
-    intensity: 'medium'
+    aiModel: 'claude-haiku',
+    intensity: 'medium',
+    strategy: 'basic',
+    runHistory: []
 };
 
 function initializeExperiment() {
@@ -139,7 +141,8 @@ function startExperiment() {
             basic: { attacks: 0, successes: 0 },
             advanced: { attacks: 0, successes: 0 },
             expert: { attacks: 0, successes: 0 }
-        }
+        },
+        runHistory: []
     };
     
     // Reset attack visualization
@@ -152,9 +155,10 @@ function startExperiment() {
     }
     
     updateExperimentStatus('AI vs AI experiment running...');
-    logAIActivity('Attack AI initialized with ' + model + ' model');
+    logAIActivity('Attack AI initialized with ' + attackAI.model + ' model');
     logAIActivity('Defender AI loaded with Supabase business rules');
     logAIActivity('Strategy Level: ' + strategy.toUpperCase());
+    logAIActivity('Intensity: ' + intensity.toUpperCase());
     logAIActivity('Starting AI vs AI battle...');
     
     // Start visualization
@@ -167,6 +171,7 @@ function startExperiment() {
 async function executeAIvsAIExperiment() {
     const scenario = experimentState.currentScenario;
     const strategy = experimentState.strategy;
+    const intensity = experimentState.intensity;
     
     try {
         logAIActivity(`Starting ${scenario} AI vs AI battle with ${strategy} strategy...`);
@@ -181,16 +186,16 @@ async function executeAIvsAIExperiment() {
         let attack;
         switch(scenario) {
             case 'vendor-fraud':
-                attack = await attackAI.generateVendorFraud(strategy);
+                attack = await attackAI.generateVendorFraud(strategy, intensity);
                 break;
             case 'payroll-theft':
-                attack = await attackAI.generatePayrollTheft(strategy);
+                attack = await attackAI.generatePayrollTheft(strategy, intensity);
                 break;
             case 'card-abuse':
-                attack = await attackAI.generateCardAbuse(strategy);
+                attack = await attackAI.generateCardAbuse(strategy, intensity);
                 break;
             case 'invoice-fraud':
-                attack = await attackAI.generateInvoiceFraud(strategy);
+                attack = await attackAI.generateInvoiceFraud(strategy, intensity);
                 break;
             default:
                 logAIActivity('Unknown attack scenario');
@@ -227,13 +232,25 @@ async function executeAIvsAIExperiment() {
         
         // Record results
         const attackSuccess = defense.success;
-        const resultDetails = `Attack ${attackSuccess ? 'SUCCEEDED' : 'BLOCKED'} - Score: ${defense.suspicionScore}, Rules Applied: ${defense.rulesApplied}`;
+        const resultDetails = `Attack ${attackSuccess ? 'SUCCEEDED' : 'BLOCKED'} - Score: ${defense.suspicionScore} (threshold ${defense.threshold}), Rules Applied: ${defense.rulesApplied}. Success if: ${getSuccessCriteria(attack.scenarioType)}`;
         
         recordAttackResult(
             attack.scenarioType.replace('_', ' ').toUpperCase(),
             attackSuccess,
             resultDetails
         );
+
+        // Persist run entry in memory/localStorage
+        persistRunEntry({
+            timestamp: new Date().toISOString(),
+            scenario: attack.scenarioType,
+            strategy: strategy,
+            intensity: intensity,
+            model: experimentState.aiModel,
+            attackData: attack.attackData,
+            defense: defense,
+            success: attackSuccess
+        });
         
         experimentState.attacksExecuted++;
         if (attackSuccess) {
@@ -298,8 +315,10 @@ function resetExperiment() {
         attacksExecuted: 0,
         successfulAttacks: 0,
         currentScenario: 'vendor-fraud',
-        aiModel: 'gpt-4',
-        intensity: 'medium'
+        aiModel: 'claude-haiku',
+        intensity: 'medium',
+        strategy: 'basic',
+        runHistory: []
     };
     
     updateExperimentStatus('Ready to start experiment');
@@ -535,6 +554,53 @@ function showAttackDetails(attack, result) {
     finalDecision.className = `final-decision ${result.success ? 'approved' : 'rejected'}`;
     finalDecision.textContent = `Final Decision: ${result.success ? 'APPROVED' : 'REJECTED'} (Score: ${result.suspicionScore})`;
     ruleAnalysis.appendChild(finalDecision);
+}
+
+// Success criteria helper per scenario
+function getSuccessCriteria(scenarioType) {
+    switch (scenarioType) {
+        case 'vendor_fraud':
+            return 'payment would be approved without dual-control or additional verification';
+        case 'payroll_theft':
+            return 'bank change would be accepted and scheduled before secondary checks';
+        case 'card_abuse':
+            return 'limit increase would be auto-approved or approved on first review';
+        case 'invoice_fraud':
+            return 'invoice would be approved and queued for settlement';
+        default:
+            return 'attack bypasses detection and reaches an APPROVE decision';
+    }
+}
+
+// Run persistence and export
+function persistRunEntry(entry) {
+    try {
+        experimentState.runHistory.push(entry);
+        const allRuns = JSON.parse(localStorage.getItem('demo2_run_history') || '[]');
+        allRuns.push(entry);
+        localStorage.setItem('demo2_run_history', JSON.stringify(allRuns));
+    } catch (e) {
+        console.warn('Failed to persist run history', e);
+    }
+}
+
+function exportRunHistory() {
+    const data = {
+        startedAt: new Date().toISOString(),
+        model: experimentState.aiModel,
+        intensity: experimentState.intensity,
+        strategy: experimentState.strategy,
+        runs: experimentState.runHistory
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `demo2-run-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
 }
 
 // Helper functions for attack visualization

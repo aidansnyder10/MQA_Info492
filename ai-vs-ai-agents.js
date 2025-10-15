@@ -62,13 +62,13 @@ class AttackAI {
     }
     
     // Generate strategic vendor fraud attack using AI
-    async generateVendorFraud(strategyLevel = 'basic') {
+    async generateVendorFraud(strategyLevel = 'basic', intensity = 'medium') {
         try {
             // Get defender rules to inform attack strategy
             const rules = await this.getDefenderRules('vendor_fraud');
             
             // Generate strategic attack using AI
-            const attackData = await this.generateStrategicAttack('vendor_fraud', rules, strategyLevel);
+            const attackData = await this.generateStrategicAttack('vendor_fraud', rules, strategyLevel, intensity);
             
             // Get AI reasoning for this strategic attack
             const reasoning = await this.getAttackReasoning('vendor_fraud', attackData);
@@ -82,13 +82,14 @@ class AttackAI {
             };
         } catch (error) {
             console.warn('Strategic attack generation failed, using fallback:', error);
-            return this.generateFallbackVendorFraud();
+            return this.generateFallbackVendorFraud(intensity);
         }
     }
     
     // Fallback method for when AI attack generation fails
-    generateFallbackVendorFraud() {
-        const amount = this.getRandomAmount(1000, 25000);
+    generateFallbackVendorFraud(intensity = 'medium') {
+        const [minAmt, maxAmt] = this.scaleByIntensity(1000, 25000, intensity);
+        const amount = this.getRandomAmount(minAmt, maxAmt);
         const attackData = {
             vendorName: this.getRandomVendor(),
             amount: amount,
@@ -99,7 +100,7 @@ class AttackAI {
             hasEmail: Math.random() > 0.2, // 80% chance
             isHistoricalVendor: Math.random() > 0.7, // 30% chance
             isRoundAmount: this.isRoundAmount(amount),
-            isUrgentRequest: Math.random() > 0.6, // 40% chance
+            isUrgentRequest: this.biasByIntensity(0.4, intensity),
             timestamp: new Date().toISOString()
         };
         
@@ -112,10 +113,10 @@ class AttackAI {
     }
     
     // Generate strategic payroll theft attack using AI
-    async generatePayrollTheft(strategyLevel = 'basic') {
+    async generatePayrollTheft(strategyLevel = 'basic', intensity = 'medium') {
         try {
             const rules = await this.getDefenderRules('payroll_theft');
-            const attackData = await this.generateStrategicAttack('payroll_theft', rules, strategyLevel);
+            const attackData = await this.generateStrategicAttack('payroll_theft', rules, strategyLevel, intensity);
             const reasoning = await this.getAttackReasoning('payroll_theft', attackData);
             
             return {
@@ -127,20 +128,20 @@ class AttackAI {
             };
         } catch (error) {
             console.warn('Strategic payroll attack generation failed, using fallback:', error);
-            return this.generateFallbackPayrollTheft();
+            return this.generateFallbackPayrollTheft(intensity);
         }
     }
     
     // Fallback payroll theft attack
-    generateFallbackPayrollTheft() {
+    generateFallbackPayrollTheft(intensity = 'medium') {
         const employee = this.getRandomEmployee();
         const attackData = {
             employeeName: employee,
             newAccountNumber: this.generateBankAccount(),
             newRoutingNumber: this.generateRoutingNumber(),
             requestDate: new Date().toISOString(),
-            isSameDayRequest: Math.random() > 0.7, // 30% chance
-            isUnknownEmail: Math.random() > 0.6, // 40% chance
+            isSameDayRequest: this.biasByIntensity(0.3, intensity),
+            isUnknownEmail: this.biasByIntensity(0.4, intensity),
             hasVerification: Math.random() > 0.5, // 50% chance
             isNormalHours: this.isBusinessHours(),
             hasPreviousChanges: Math.random() > 0.8, // 20% chance
@@ -158,10 +159,10 @@ class AttackAI {
     }
     
     // Generate strategic card abuse attack using AI
-    async generateCardAbuse(strategyLevel = 'basic') {
+    async generateCardAbuse(strategyLevel = 'basic', intensity = 'medium') {
         try {
             const rules = await this.getDefenderRules('card_abuse');
-            const attackData = await this.generateStrategicAttack('card_abuse', rules, strategyLevel);
+            const attackData = await this.generateStrategicAttack('card_abuse', rules, strategyLevel, intensity);
             const reasoning = await this.getAttackReasoning('card_abuse', attackData);
             
             return {
@@ -173,13 +174,14 @@ class AttackAI {
             };
         } catch (error) {
             console.warn('Strategic card abuse attack generation failed, using fallback:', error);
-            return this.generateFallbackCardAbuse();
+            return this.generateFallbackCardAbuse(intensity);
         }
     }
     
     // Fallback card abuse attack
-    generateFallbackCardAbuse() {
-        const requestedLimit = this.getRandomLimit(35000, 75000);
+    generateFallbackCardAbuse(intensity = 'medium') {
+        const [minL, maxL] = this.scaleByIntensity(35000, 75000, intensity);
+        const requestedLimit = this.getRandomLimit(minL, maxL);
         const attackData = {
             cardName: 'Engineering Team Card',
             currentLimit: 30000,
@@ -187,9 +189,9 @@ class AttackAI {
             justification: this.getRandomJustification(),
             requestDate: new Date().toISOString(),
             isLargeIncrease: this.isLargeIncrease(requestedLimit, 30000),
-            isSameDayRequest: Math.random() > 0.7, // 30% chance
+            isSameDayRequest: this.biasByIntensity(0.3, intensity),
             hasJustification: Math.random() > 0.2, // 80% chance
-            isUrgentReason: Math.random() > 0.6, // 40% chance
+            isUrgentReason: this.biasByIntensity(0.4, intensity),
             hasDetailedJustification: Math.random() > 0.4, // 60% chance
             hasHistoricalApproval: Math.random() > 0.7, // 30% chance
             isReasonableAmount: this.isReasonableAmount(requestedLimit, 30000),
@@ -206,10 +208,10 @@ class AttackAI {
     }
     
     // Generate strategic invoice fraud attack using AI
-    async generateInvoiceFraud(strategyLevel = 'basic') {
+    async generateInvoiceFraud(strategyLevel = 'basic', intensity = 'medium') {
         try {
             const rules = await this.getDefenderRules('invoice_fraud');
-            const attackData = await this.generateStrategicAttack('invoice_fraud', rules, strategyLevel);
+            const attackData = await this.generateStrategicAttack('invoice_fraud', rules, strategyLevel, intensity);
             const reasoning = await this.getAttackReasoning('invoice_fraud', attackData);
             
             return {
@@ -221,14 +223,15 @@ class AttackAI {
             };
         } catch (error) {
             console.warn('Strategic invoice fraud attack generation failed, using fallback:', error);
-            return this.generateFallbackInvoiceFraud();
+            return this.generateFallbackInvoiceFraud(intensity);
         }
     }
     
     // Fallback invoice fraud attack
-    generateFallbackInvoiceFraud() {
+    generateFallbackInvoiceFraud(intensity = 'medium') {
         const normalAmount = 3200; // Typical utility bill
-        const amount = this.getRandomAmount(normalAmount, normalAmount * 3);
+        const multiplier = intensity === 'high' ? 3 : intensity === 'medium' ? 2.2 : 1.6;
+        const amount = this.getRandomAmount(normalAmount, Math.floor(normalAmount * multiplier));
         const attackData = {
             vendorName: 'Northwest Utilities',
             invoiceNumber: this.generateInvoiceNumber(),
@@ -236,7 +239,7 @@ class AttackAI {
             description: 'Monthly utilities - catch-up billing',
             normalAmount: normalAmount,
             isInflatedAmount: this.isInflatedAmount(amount, normalAmount),
-            isNewVendor: Math.random() > 0.8, // 20% chance
+            isNewVendor: this.biasByIntensity(0.2, intensity),
             hasGenericServices: Math.random() > 0.6, // 40% chance
             hasReceipts: Math.random() > 0.4, // 60% chance
             isHistoricalVendor: Math.random() > 0.3, // 70% chance
@@ -282,8 +285,8 @@ class AttackAI {
     }
     
     // Generate strategic attack using AI with knowledge of defender rules
-    async generateStrategicAttack(scenarioType, rules, strategyLevel = 'basic') {
-        const prompt = this.buildStrategicAttackPrompt(scenarioType, rules, strategyLevel);
+    async generateStrategicAttack(scenarioType, rules, strategyLevel = 'basic', intensity = 'medium') {
+        const prompt = this.buildStrategicAttackPrompt(scenarioType, rules, strategyLevel, intensity);
         
         try {
             const response = await this.callHuggingFaceAPI(prompt);
@@ -298,7 +301,7 @@ class AttackAI {
     }
     
     // Build strategic attack prompt for Claude
-    buildStrategicAttackPrompt(scenarioType, rules, strategyLevel = 'basic') {
+    buildStrategicAttackPrompt(scenarioType, rules, strategyLevel = 'basic', intensity = 'medium') {
         const rulesText = rules.map(rule => 
             `- ${rule.parameter_name}: ${rule.weight} points (${rule.description})`
         ).join('\n');
@@ -320,6 +323,11 @@ Rules Analysis:
 
 Strategy Level: ${strategyLevel.toUpperCase()}
 ${strategyInstructions}
+
+ Attack Intensity: ${intensity.toUpperCase()}
+ - Low: conservative values and timings
+ - Medium: balanced parameter shifts
+ - High: aggressive values and time pressure
 
 ${learningContext}
 
@@ -528,6 +536,25 @@ Avoid the patterns that led to these failures. Try different approaches.`;
     getRandomLimit(min, max) {
         return Math.floor(Math.random() * (max - min + 1000)) + min;
     }
+
+    // Scale numeric ranges by intensity
+    scaleByIntensity(min, max, intensity = 'medium') {
+        switch (intensity) {
+            case 'low':
+                return [min, Math.floor((min + max) / 2)];
+            case 'high':
+                return [Math.floor((min + max) / 2), max];
+            default:
+                return [min, max];
+        }
+    }
+
+    // Bias a base probability upward based on intensity
+    biasByIntensity(baseProbability, intensity = 'medium') {
+        if (intensity === 'low') return Math.random() < baseProbability * 0.7;
+        if (intensity === 'high') return Math.random() < Math.min(1, baseProbability * 1.5);
+        return Math.random() < baseProbability;
+    }
     
     generateBankAccount() {
         return Math.floor(Math.random() * 900000000) + 100000000; // 9-digit account
@@ -700,7 +727,7 @@ class DefenderAI {
             const rules = await this.getBusinessRules(attack.scenarioType);
             
             // Calculate suspicion score
-            const suspicionScore = this.calculateSuspicionScore(attack.attackData, rules);
+            const { totalScore: suspicionScore, ruleAnalysis } = this.calculateSuspicionScore(attack.attackData, rules);
             
             // Make decision based on threshold
             // Higher suspicion = REJECT, Lower suspicion = APPROVE
@@ -719,7 +746,9 @@ class DefenderAI {
                 decision: decision,
                 success: success,
                 reasoning: reasoning,
-                rulesApplied: rules.length
+                rulesApplied: rules.length,
+                ruleAnalysis: ruleAnalysis,
+                threshold: SUSPICION_THRESHOLD
             };
             
         } catch (error) {
@@ -779,7 +808,9 @@ class DefenderAI {
             decision: decision,
             success: success,
             reasoning: reasoning,
-            rulesApplied: 3 // Fallback uses 3 basic rules
+            rulesApplied: 3,
+            ruleAnalysis: [],
+            threshold: SUSPICION_THRESHOLD
         };
     }
     
@@ -865,6 +896,7 @@ class DefenderAI {
         
         let totalScore = 0;
         let appliedRules = [];
+        let analysis = [];
         
         rules.forEach(rule => {
             const parameterName = rule.parameter_name;
@@ -878,12 +910,19 @@ class DefenderAI {
                 totalScore += weight;
                 appliedRules.push({ parameterName, weight });
             }
+
+            analysis.push({
+                parameter_name: parameterName,
+                description: rule.description,
+                weight: weight,
+                triggered: conditionMet
+            });
         });
         
         console.log('DefenderAI: Applied rules:', appliedRules);
         console.log('DefenderAI: Total suspicion score:', totalScore);
         
-        return totalScore;
+        return { totalScore, ruleAnalysis: analysis };
     }
     
     // Evaluate individual rule condition

@@ -1267,3 +1267,72 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Strategy Comparison Styles */
+.strategy-comparison {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.strategy-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #667eea;
+}
+
+.strategy-card h4 {
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 18px;
+}
+
+.strategy-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.stat:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    font-weight: 500;
+    color: #666;
+}
+
+.stat-value {
+    font-weight: bold;
+    color: #333;
+    font-size: 16px;
+}
+
+.strategy-card.basic {
+    border-left-color: #f39c12;
+}
+
+.strategy-card.advanced {
+    border-left-color: #e74c3c;
+}
+
+.strategy-card.expert {
+    border-left-color: #8e44ad;
+}
+
+@media (max-width: 768px) {
+    .strategy-comparison {
+        grid-template-columns: 1fr;
+    }
+}

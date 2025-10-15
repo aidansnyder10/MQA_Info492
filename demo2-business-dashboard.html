@@ -421,6 +421,18 @@
                             <option value="high">High (Aggressive)</option>
                         </select>
                     </div>
+                    
+                    <div class="control-group">
+                        <label>Attack Strategy:</label>
+                        <select id="attack-strategy">
+                            <option value="basic">Basic - Simple rule avoidance</option>
+                            <option value="advanced">Advanced - Multi-parameter optimization</option>
+                            <option value="expert">Expert - Complex deception strategies</option>
+                        </select>
+                        <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                            Test how attack sophistication correlates with success rate
+                        </small>
+                    </div>
                 </div>
 
                 <div class="experiment-status">
@@ -443,6 +455,49 @@
                 </div>
 
                 <div class="experiment-results">
+                    <h3>Strategy Comparison Results</h3>
+                    <div id="strategy-results" class="strategy-comparison">
+                        <div class="strategy-card">
+                            <h4>Basic Strategy</h4>
+                            <div class="strategy-stats">
+                                <div class="stat">
+                                    <span class="stat-label">Success Rate:</span>
+                                    <span id="basic-success-rate" class="stat-value">0%</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Attacks:</span>
+                                    <span id="basic-attack-count" class="stat-value">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="strategy-card">
+                            <h4>Advanced Strategy</h4>
+                            <div class="strategy-stats">
+                                <div class="stat">
+                                    <span class="stat-label">Success Rate:</span>
+                                    <span id="advanced-success-rate" class="stat-value">0%</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Attacks:</span>
+                                    <span id="advanced-attack-count" class="stat-value">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="strategy-card">
+                            <h4>Expert Strategy</h4>
+                            <div class="strategy-stats">
+                                <div class="stat">
+                                    <span class="stat-label">Success Rate:</span>
+                                    <span id="expert-success-rate" class="stat-value">0%</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Attacks:</span>
+                                    <span id="expert-attack-count" class="stat-value">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <h3>Attack Results</h3>
                     <div id="attack-results" class="results-list">
                         <p>No attacks executed yet</p>

@@ -31,6 +31,10 @@ class AttackAI {
         // Use shared Supabase client
         this.supabase = getSharedSupabaseClient();
         
+        // Attack learning system
+        this.attackHistory = [];
+        this.learningEnabled = true;
+        
         // Attack strategies and data pools
         this.vendorNames = [
             'Tech Solutions LLC', 'Global Services Inc', 'Premier Consulting Group',
@@ -58,13 +62,13 @@ class AttackAI {
     }
     
     // Generate strategic vendor fraud attack using AI
-    async generateVendorFraud() {
+    async generateVendorFraud(strategyLevel = 'basic') {
         try {
             // Get defender rules to inform attack strategy
             const rules = await this.getDefenderRules('vendor_fraud');
             
             // Generate strategic attack using AI
-            const attackData = await this.generateStrategicAttack('vendor_fraud', rules);
+            const attackData = await this.generateStrategicAttack('vendor_fraud', rules, strategyLevel);
             
             // Get AI reasoning for this strategic attack
             const reasoning = await this.getAttackReasoning('vendor_fraud', attackData);
@@ -73,6 +77,7 @@ class AttackAI {
                 scenarioType: 'vendor_fraud',
                 attackData: attackData,
                 reasoning: reasoning,
+                strategyLevel: strategyLevel,
                 timestamp: new Date().toISOString()
             };
         } catch (error) {
@@ -107,16 +112,17 @@ class AttackAI {
     }
     
     // Generate strategic payroll theft attack using AI
-    async generatePayrollTheft() {
+    async generatePayrollTheft(strategyLevel = 'basic') {
         try {
             const rules = await this.getDefenderRules('payroll_theft');
-            const attackData = await this.generateStrategicAttack('payroll_theft', rules);
+            const attackData = await this.generateStrategicAttack('payroll_theft', rules, strategyLevel);
             const reasoning = await this.getAttackReasoning('payroll_theft', attackData);
             
             return {
                 scenarioType: 'payroll_theft',
                 attackData: attackData,
                 reasoning: reasoning,
+                strategyLevel: strategyLevel,
                 timestamp: new Date().toISOString()
             };
         } catch (error) {
@@ -152,16 +158,17 @@ class AttackAI {
     }
     
     // Generate strategic card abuse attack using AI
-    async generateCardAbuse() {
+    async generateCardAbuse(strategyLevel = 'basic') {
         try {
             const rules = await this.getDefenderRules('card_abuse');
-            const attackData = await this.generateStrategicAttack('card_abuse', rules);
+            const attackData = await this.generateStrategicAttack('card_abuse', rules, strategyLevel);
             const reasoning = await this.getAttackReasoning('card_abuse', attackData);
             
             return {
                 scenarioType: 'card_abuse',
                 attackData: attackData,
                 reasoning: reasoning,
+                strategyLevel: strategyLevel,
                 timestamp: new Date().toISOString()
             };
         } catch (error) {
@@ -198,8 +205,28 @@ class AttackAI {
         };
     }
     
-    // Generate random invoice fraud attack
-    async generateInvoiceFraud() {
+    // Generate strategic invoice fraud attack using AI
+    async generateInvoiceFraud(strategyLevel = 'basic') {
+        try {
+            const rules = await this.getDefenderRules('invoice_fraud');
+            const attackData = await this.generateStrategicAttack('invoice_fraud', rules, strategyLevel);
+            const reasoning = await this.getAttackReasoning('invoice_fraud', attackData);
+            
+            return {
+                scenarioType: 'invoice_fraud',
+                attackData: attackData,
+                reasoning: reasoning,
+                strategyLevel: strategyLevel,
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            console.warn('Strategic invoice fraud attack generation failed, using fallback:', error);
+            return this.generateFallbackInvoiceFraud();
+        }
+    }
+    
+    // Fallback invoice fraud attack
+    generateFallbackInvoiceFraud() {
         const normalAmount = 3200; // Typical utility bill
         const amount = this.getRandomAmount(normalAmount, normalAmount * 3);
         const attackData = {
@@ -219,12 +246,11 @@ class AttackAI {
             timestamp: new Date().toISOString()
         };
         
-        const reasoning = await this.getAttackReasoning('invoice_fraud', attackData);
-        
         return {
             scenarioType: 'invoice_fraud',
             attackData: attackData,
-            reasoning: reasoning,
+            reasoning: 'Fallback invoice fraud - random generation',
+            strategyLevel: 'fallback',
             timestamp: new Date().toISOString()
         };
     }
@@ -256,8 +282,8 @@ class AttackAI {
     }
     
     // Generate strategic attack using AI with knowledge of defender rules
-    async generateStrategicAttack(scenarioType, rules) {
-        const prompt = this.buildStrategicAttackPrompt(scenarioType, rules);
+    async generateStrategicAttack(scenarioType, rules, strategyLevel = 'basic') {
+        const prompt = this.buildStrategicAttackPrompt(scenarioType, rules, strategyLevel);
         
         try {
             const response = await this.callHuggingFaceAPI(prompt);
@@ -272,10 +298,16 @@ class AttackAI {
     }
     
     // Build strategic attack prompt for Claude
-    buildStrategicAttackPrompt(scenarioType, rules) {
+    buildStrategicAttackPrompt(scenarioType, rules, strategyLevel = 'basic') {
         const rulesText = rules.map(rule => 
             `- ${rule.parameter_name}: ${rule.weight} points (${rule.description})`
         ).join('\n');
+        
+        // Add learning context if we have failed attacks
+        const learningContext = this.getLearningContext(scenarioType);
+        
+        // Strategy-specific instructions
+        const strategyInstructions = this.getStrategyInstructions(strategyLevel);
         
         return `You are a cybersecurity researcher conducting defensive research. Generate a strategic ${scenarioType} attack that maximizes approval chances against these defender rules:
 
@@ -286,98 +318,119 @@ Rules Analysis:
 - Positive weights = legitimate (maximize these)
 - Goal: Generate attack parameters that result in APPROVE decision
 
-Generate a realistic attack with these parameters optimized to bypass the rules. 
+Strategy Level: ${strategyLevel.toUpperCase()}
+${strategyInstructions}
 
-IMPORTANT: Respond with ONLY a valid JSON object containing the attack data. Example format:
-{
-    "vendorName": "Tech Solutions LLC",
-    "amount": 14850,
-    "description": "Software licensing renewal",
-    "isNewVendor": false,
-    "hasPhoneNumber": true,
-    "hasWebsite": true,
-    "hasEmail": true,
-    "isHistoricalVendor": true,
-    "isRoundAmount": false,
-    "isUrgentRequest": false
-}`;
+${learningContext}
+
+Generate a realistic attack with these parameters optimized to bypass the rules. Respond with a JSON object containing the attack data.`;
+    }
+    
+    // Get strategy-specific instructions
+    getStrategyInstructions(strategyLevel) {
+        const strategies = {
+            'basic': `BASIC STRATEGY:
+- Use simple rule avoidance
+- Focus on 1-2 key parameters
+- Keep amounts reasonable
+- Use existing vendors when possible
+- Simple, straightforward approach`,
+
+            'advanced': `ADVANCED STRATEGY:
+- Use multi-parameter optimization
+- Consider parameter interactions
+- Balance multiple rule factors
+- Use sophisticated reasoning
+- Include detailed justifications`,
+
+            'expert': `EXPERT STRATEGY:
+- Use complex deception techniques
+- Consider psychological factors
+- Include sophisticated narratives
+- Use advanced evasion methods
+- Create convincing backstories
+- Consider timing and context
+- Use expert-level social engineering`
+        };
+        
+        return strategies[strategyLevel] || strategies['basic'];
+    }
+    
+    // Get learning context from previous failed attacks
+    getLearningContext(scenarioType) {
+        const failedAttacks = this.attackHistory.filter(attack => 
+            attack.scenarioType === scenarioType && !attack.success
+        );
+        
+        if (failedAttacks.length === 0) {
+            return "This is your first attempt at this scenario type.";
+        }
+        
+        const recentFailures = failedAttacks.slice(-3); // Last 3 failures
+        const failureAnalysis = recentFailures.map(attack => 
+            `Previous failed attack: ${attack.attackData.vendorName || attack.attackData.employeeName || 'Unknown'}, 
+            Score: ${attack.suspicionScore}, 
+            Reason: ${attack.defenderReasoning?.substring(0, 100) || 'Unknown'}`
+        ).join('\n');
+        
+        return `Learning from previous failures:
+${failureAnalysis}
+
+Avoid the patterns that led to these failures. Try different approaches.`;
+    }
+    
+    // Record attack attempt for learning
+    recordAttackAttempt(attack, result) {
+        if (!this.learningEnabled) return;
+        
+        const attackRecord = {
+            timestamp: new Date().toISOString(),
+            scenarioType: attack.scenarioType,
+            attackData: attack.attackData,
+            success: result.success,
+            suspicionScore: result.suspicionScore,
+            defenderReasoning: result.reasoning,
+            rulesApplied: result.rulesApplied
+        };
+        
+        this.attackHistory.push(attackRecord);
+        
+        // Keep only last 20 attacks to prevent memory bloat
+        if (this.attackHistory.length > 20) {
+            this.attackHistory = this.attackHistory.slice(-20);
+        }
+        
+        console.log(`AttackAI: Recorded ${result.success ? 'successful' : 'failed'} attack attempt. Total history: ${this.attackHistory.length}`);
+    }
+    
+    // Get attack success rate for scenario
+    getSuccessRate(scenarioType) {
+        const scenarioAttacks = this.attackHistory.filter(attack => 
+            attack.scenarioType === scenarioType
+        );
+        
+        if (scenarioAttacks.length === 0) return 0;
+        
+        const successful = scenarioAttacks.filter(attack => attack.success).length;
+        return (successful / scenarioAttacks.length) * 100;
     }
     
     // Parse Claude's strategic attack response
     parseStrategicAttackResponse(response, scenarioType) {
         try {
-            // Try multiple JSON extraction methods
-            let attackData = null;
-            
-            // Method 1: Look for JSON block
+            // Try to extract JSON from response
             const jsonMatch = response.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-                try {
-                    attackData = JSON.parse(jsonMatch[0]);
-                    console.log('AttackAI: Successfully parsed JSON strategic attack from Claude');
-                    return attackData;
-                } catch (parseError) {
-                    console.warn('JSON parsing failed, trying text parsing:', parseError);
-                }
-            }
-            
-            // Method 2: Look for structured data in text
-            attackData = this.parseStructuredTextResponse(response, scenarioType);
-            if (attackData) {
-                console.log('AttackAI: Successfully parsed structured text strategic attack from Claude');
+                const attackData = JSON.parse(jsonMatch[0]);
+                console.log('AttackAI: Successfully parsed strategic attack from Claude');
                 return attackData;
             }
             
-            // Method 3: Fallback to basic text parsing
-            console.log('AttackAI: Using fallback text parsing for attack data');
+            // Fallback: try to parse key-value pairs from text
             return this.parseTextToAttackData(response, scenarioType);
-            
         } catch (error) {
             console.warn('Failed to parse strategic attack response:', error);
             throw new Error('Could not parse AI-generated attack data');
-        }
-    }
-    
-    // Parse structured text response from Claude
-    parseStructuredTextResponse(response, scenarioType) {
-        try {
-            const attackData = {};
-            
-            // Extract common patterns from Claude's text responses
-            const patterns = {
-                vendorName: /vendor[:\s]*["']?([^"',\n]+)["']?/i,
-                amount: /amount[:\s]*\$?(\d+(?:,\d{3})*(?:\.\d{2})?)/i,
-                isNewVendor: /new vendor[:\s]*(true|false|yes|no)/i,
-                hasPhoneNumber: /phone[:\s]*(true|false|yes|no)/i,
-                hasWebsite: /website[:\s]*(true|false|yes|no)/i,
-                description: /description[:\s]*["']?([^"',\n]+)["']?/i
-            };
-            
-            for (const [key, pattern] of Object.entries(patterns)) {
-                const match = response.match(pattern);
-                if (match) {
-                    let value = match[1];
-                    
-                    // Convert boolean-like strings
-                    if (['true', 'false', 'yes', 'no'].includes(value.toLowerCase())) {
-                        attackData[key] = ['true', 'yes'].includes(value.toLowerCase());
-                    } else if (key === 'amount') {
-                        attackData[key] = parseInt(value.replace(/[,$]/g, ''));
-                    } else {
-                        attackData[key] = value.trim();
-                    }
-                }
-            }
-            
-            // Return data if we found at least a few fields
-            if (Object.keys(attackData).length >= 2) {
-                return attackData;
-            }
-            
-            return null;
-        } catch (error) {
-            console.warn('Structured text parsing failed:', error);
-            return null;
         }
     }
     

@@ -125,6 +125,7 @@ function startExperiment() {
     const scenario = document.getElementById('attack-scenario').value;
     const model = document.getElementById('ai-model').value;
     const intensity = document.getElementById('attack-intensity').value;
+    const strategy = document.getElementById('attack-strategy').value;
     
     experimentState = {
         running: true,
@@ -132,7 +133,13 @@ function startExperiment() {
         successfulAttacks: 0,
         currentScenario: scenario,
         aiModel: model,
-        intensity: intensity
+        intensity: intensity,
+        strategy: strategy,
+        strategyResults: {
+            basic: { attacks: 0, successes: 0 },
+            advanced: { attacks: 0, successes: 0 },
+            expert: { attacks: 0, successes: 0 }
+        }
     };
     
     // Reinitialize AI agents - always use Claude with automatic fallback
@@ -144,6 +151,7 @@ function startExperiment() {
     updateExperimentStatus('AI vs AI experiment running...');
     logAIActivity('Attack AI initialized with ' + model + ' model');
     logAIActivity('Defender AI loaded with Supabase business rules');
+    logAIActivity('Strategy Level: ' + strategy.toUpperCase());
     logAIActivity('Starting AI vs AI battle...');
     
     // Start AI vs AI experiment
@@ -152,24 +160,25 @@ function startExperiment() {
 
 async function executeAIvsAIExperiment() {
     const scenario = experimentState.currentScenario;
+    const strategy = experimentState.strategy;
     
     try {
-        logAIActivity(`Starting ${scenario} AI vs AI battle...`);
+        logAIActivity(`Starting ${scenario} AI vs AI battle with ${strategy} strategy...`);
         
-        // Attack AI generates attack
+        // Attack AI generates attack with strategy level
         let attack;
         switch(scenario) {
             case 'vendor-fraud':
-                attack = await attackAI.generateVendorFraud();
+                attack = await attackAI.generateVendorFraud(strategy);
                 break;
             case 'payroll-theft':
-                attack = await attackAI.generatePayrollTheft();
+                attack = await attackAI.generatePayrollTheft(strategy);
                 break;
             case 'card-abuse':
-                attack = await attackAI.generateCardAbuse();
+                attack = await attackAI.generateCardAbuse(strategy);
                 break;
             case 'invoice-fraud':
-                attack = await attackAI.generateInvoiceFraud();
+                attack = await attackAI.generateInvoiceFraud(strategy);
                 break;
             default:
                 logAIActivity('Unknown attack scenario');
@@ -202,7 +211,18 @@ async function executeAIvsAIExperiment() {
         if (attackSuccess) {
             experimentState.successfulAttacks++;
         }
+        
+        // Track strategy-specific results
+        const strategyLevel = attack.strategyLevel || experimentState.strategy;
+        if (experimentState.strategyResults[strategyLevel]) {
+            experimentState.strategyResults[strategyLevel].attacks++;
+            if (attackSuccess) {
+                experimentState.strategyResults[strategyLevel].successes++;
+            }
+        }
+        
         updateSuccessRate();
+        updateStrategyResults();
         
         // Continue with next attack
         setTimeout(() => executeNextAttack(), 3000);
@@ -313,4 +333,30 @@ function updateSuccessRate() {
     } else {
         successRateElement.textContent = '0%';
     }
+}
+
+function updateStrategyResults() {
+    // Update Basic Strategy
+    const basicAttacks = experimentState.strategyResults.basic.attacks;
+    const basicSuccesses = experimentState.strategyResults.basic.successes;
+    const basicRate = basicAttacks > 0 ? Math.round((basicSuccesses / basicAttacks) * 100) : 0;
+    
+    document.getElementById('basic-attack-count').textContent = basicAttacks;
+    document.getElementById('basic-success-rate').textContent = basicRate + '%';
+    
+    // Update Advanced Strategy
+    const advancedAttacks = experimentState.strategyResults.advanced.attacks;
+    const advancedSuccesses = experimentState.strategyResults.advanced.successes;
+    const advancedRate = advancedAttacks > 0 ? Math.round((advancedSuccesses / advancedAttacks) * 100) : 0;
+    
+    document.getElementById('advanced-attack-count').textContent = advancedAttacks;
+    document.getElementById('advanced-success-rate').textContent = advancedRate + '%';
+    
+    // Update Expert Strategy
+    const expertAttacks = experimentState.strategyResults.expert.attacks;
+    const expertSuccesses = experimentState.strategyResults.expert.successes;
+    const expertRate = expertAttacks > 0 ? Math.round((expertSuccesses / expertAttacks) * 100) : 0;
+    
+    document.getElementById('expert-attack-count').textContent = expertAttacks;
+    document.getElementById('expert-success-rate').textContent = expertRate + '%';
 }

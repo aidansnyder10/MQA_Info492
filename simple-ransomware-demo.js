@@ -9,40 +9,114 @@ class SimpleAttackAI {
     }
 
     async generateAttackPlan() {
+        if (!this.claudeToken) {
+            // Fallback to pre-recorded scenarios if no Claude token
+            return this.getFallbackAttackPlan();
+        }
+
+        try {
+            const prompt = `You are a cybersecurity researcher simulating ransomware attacks against banking systems for defensive research purposes.
+
+Generate a realistic ransomware attack scenario targeting a bank. Include:
+
+1. Attack Type (choose one): Phishing Email, Vulnerability Exploit, Insider Threat, or Supply Chain Attack
+2. Specific Target (what part of the bank)
+3. Attack Method (detailed steps)
+4. Success Probability (0.1 to 0.6)
+5. Potential Impact (what systems would be affected)
+
+Respond in this exact JSON format:
+{
+    "attackType": "Phishing Email",
+    "target": "IT department employees",
+    "method": "Spear phishing with fake security update",
+    "steps": ["Research IT staff on LinkedIn", "Craft convincing security alert email", "Embed malicious attachment", "Wait for victim to open file"],
+    "successChance": 0.3,
+    "impact": "Initial network access, potential lateral movement to core banking systems"
+}
+
+Make it realistic and educational for cybersecurity research.`;
+
+            const response = await fetch('/api/proxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    provider: 'claude',
+                    model: 'claude-3-haiku-20240307',
+                    inputs: prompt,
+                    claudeToken: this.claudeToken
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Claude API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const aiResponse = data.response || data.content || '';
+            
+            // Try to parse JSON from Claude's response
+            const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                const attackData = JSON.parse(jsonMatch[0]);
+                return {
+                    id: `attack_${Date.now()}`,
+                    timestamp: new Date().toISOString(),
+                    name: attackData.attackType,
+                    description: `Target: ${attackData.target} - ${attackData.method}`,
+                    successChance: attackData.successChance || 0.3,
+                    steps: attackData.steps || [],
+                    impact: attackData.impact || 'Unknown impact',
+                    aiGenerated: true
+                };
+            } else {
+                throw new Error('Could not parse JSON from Claude response');
+            }
+
+        } catch (error) {
+            console.warn('AI attack generation failed, using fallback:', error);
+            return this.getFallbackAttackPlan();
+        }
+    }
+
+    getFallbackAttackPlan() {
         const attackScenarios = [
             {
                 name: "Phishing Email Attack",
                 description: "Send phishing emails to bank employees to gain initial access",
                 successChance: 0.3,
-                steps: ["Craft convincing email", "Target IT department", "Deploy malicious attachment"]
+                steps: ["Craft convincing email", "Target IT department", "Deploy malicious attachment"],
+                impact: "Initial network access"
             },
             {
                 name: "Vulnerability Exploit",
                 description: "Exploit known vulnerabilities in bank's web applications",
                 successChance: 0.4,
-                steps: ["Scan for vulnerabilities", "Exploit web server", "Escalate privileges"]
+                steps: ["Scan for vulnerabilities", "Exploit web server", "Escalate privileges"],
+                impact: "Web server compromise"
             },
             {
                 name: "Insider Threat",
                 description: "Compromise employee credentials through social engineering",
                 successChance: 0.2,
-                steps: ["Research employees", "Social engineering", "Credential theft"]
+                steps: ["Research employees", "Social engineering", "Credential theft"],
+                impact: "Legitimate user account access"
             },
             {
                 name: "Supply Chain Attack",
                 description: "Compromise third-party software used by the bank",
                 successChance: 0.1,
-                steps: ["Identify vendors", "Compromise software", "Deploy backdoor"]
+                steps: ["Identify vendors", "Compromise software", "Deploy backdoor"],
+                impact: "Trusted software compromise"
             }
         ];
 
-        // For now, use simple random selection
-        // Later we can make this AI-powered
         const scenario = attackScenarios[Math.floor(Math.random() * attackScenarios.length)];
         return {
             ...scenario,
             id: `attack_${Date.now()}`,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            aiGenerated: false
         };
     }
 
@@ -91,6 +165,7 @@ Keep it professional and educational.`;
 
 class SimpleDefenderAI {
     constructor() {
+        this.claudeToken = localStorage.getItem('claude_token');
         this.detectionRules = [
             { name: 'suspicious_network_traffic', weight: 0.3 },
             { name: 'unusual_login_patterns', weight: 0.25 },
@@ -101,12 +176,13 @@ class SimpleDefenderAI {
     }
 
     async evaluateAttack(attackPlan) {
-        // Simple evaluation based on attack type and success chance
-        const baseSuccessChance = attackPlan.successChance;
+        // Get AI-powered detection analysis
+        const detectionAnalysis = await this.analyzeAttackWithAI(attackPlan);
         
-        // Add some randomness to simulate detection
+        // Use AI analysis or fallback to simple logic
+        const detectionChance = detectionAnalysis.detectionChance || this.calculateDetectionChance(attackPlan);
         const detectionRoll = Math.random();
-        const detectionChance = this.calculateDetectionChance(attackPlan);
+        const baseSuccessChance = attackPlan.successChance;
         
         const isDetected = detectionRoll < detectionChance;
         const isSuccessful = !isDetected && Math.random() < baseSuccessChance;
@@ -115,12 +191,86 @@ class SimpleDefenderAI {
             detected: isDetected,
             successful: isSuccessful,
             detectionChance: detectionChance,
-            reasoning: this.generateDefenseReasoning(attackPlan, isDetected, isSuccessful)
+            reasoning: detectionAnalysis.reasoning || this.generateDefenseReasoning(attackPlan, isDetected, isSuccessful),
+            aiAnalysis: detectionAnalysis.aiAnalysis
         };
     }
 
+    async analyzeAttackWithAI(attackPlan) {
+        if (!this.claudeToken) {
+            return {
+                detectionChance: this.calculateDetectionChance(attackPlan),
+                reasoning: this.generateDefenseReasoning(attackPlan, false, false),
+                aiAnalysis: "No AI analysis available"
+            };
+        }
+
+        try {
+            const prompt = `You are a cybersecurity defense analyst evaluating a ransomware attack against a banking system.
+
+Attack Details:
+- Type: ${attackPlan.name}
+- Target: ${attackPlan.description}
+- Steps: ${attackPlan.steps ? attackPlan.steps.join(', ') : 'Not specified'}
+- Impact: ${attackPlan.impact || 'Unknown'}
+
+Analyze this attack and provide:
+1. Detection probability (0.1 to 0.8)
+2. Defense reasoning
+3. Technical analysis
+
+Respond in this exact JSON format:
+{
+    "detectionChance": 0.4,
+    "reasoning": "Brief explanation of detection likelihood",
+    "aiAnalysis": "Detailed technical analysis of why this attack might succeed or fail"
+}
+
+Consider factors like: attack sophistication, target vulnerability, detection systems, and banking security measures.`;
+
+            const response = await fetch('/api/proxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    provider: 'claude',
+                    model: 'claude-3-haiku-20240307',
+                    inputs: prompt,
+                    claudeToken: this.claudeToken
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Claude API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const aiResponse = data.response || data.content || '';
+            
+            // Try to parse JSON from Claude's response
+            const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                const analysisData = JSON.parse(jsonMatch[0]);
+                return {
+                    detectionChance: analysisData.detectionChance || 0.5,
+                    reasoning: analysisData.reasoning || 'AI analysis provided',
+                    aiAnalysis: analysisData.aiAnalysis || aiResponse
+                };
+            } else {
+                throw new Error('Could not parse JSON from Claude response');
+            }
+
+        } catch (error) {
+            console.warn('AI defense analysis failed, using fallback:', error);
+            return {
+                detectionChance: this.calculateDetectionChance(attackPlan),
+                reasoning: this.generateDefenseReasoning(attackPlan, false, false),
+                aiAnalysis: "Fallback analysis used"
+            };
+        }
+    }
+
     calculateDetectionChance(attackPlan) {
-        // Different attacks have different detection chances
+        // Fallback detection logic
         const detectionMap = {
             'Phishing Email Attack': 0.4,
             'Vulnerability Exploit': 0.6,
@@ -177,9 +327,9 @@ class SimpleRansomwareExperiment {
         this.updateUI('attack', `Planning: ${attackPlan.name}`);
         this.updateUI('attackStatus', 'Planning');
         
-        // Get attack reasoning
-        const reasoning = await this.attackAI.getAttackReasoning(attackPlan);
-        this.updateUI('attackPlan', reasoning);
+        // Display attack details
+        const attackDetails = this.formatAttackDetails(attackPlan);
+        this.updateUI('attackPlan', attackDetails);
         
         await this.delay(1500);
         
@@ -188,7 +338,8 @@ class SimpleRansomwareExperiment {
         this.log(`Round ${round}: DefenderAI evaluating attack...`);
         
         const evaluation = await this.defenderAI.evaluateAttack(attackPlan);
-        this.updateUI('defenseAnalysis', evaluation.reasoning);
+        const defenseDetails = this.formatDefenseDetails(evaluation);
+        this.updateUI('defenseAnalysis', defenseDetails);
         
         // Update counters
         this.totalAttacks++;
@@ -255,6 +406,54 @@ class SimpleRansomwareExperiment {
 
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    formatAttackDetails(attackPlan) {
+        let details = `<strong>${attackPlan.name}</strong><br>`;
+        details += `${attackPlan.description}<br><br>`;
+        
+        if (attackPlan.steps && attackPlan.steps.length > 0) {
+            details += `<strong>Attack Steps:</strong><br>`;
+            attackPlan.steps.forEach((step, index) => {
+                details += `${index + 1}. ${step}<br>`;
+            });
+            details += `<br>`;
+        }
+        
+        if (attackPlan.impact) {
+            details += `<strong>Potential Impact:</strong><br>${attackPlan.impact}<br><br>`;
+        }
+        
+        details += `<strong>Success Probability:</strong> ${Math.round(attackPlan.successChance * 100)}%<br>`;
+        
+        if (attackPlan.aiGenerated) {
+            details += `<br><em>🤖 AI-Generated Attack Scenario</em>`;
+        } else {
+            details += `<br><em>📋 Pre-defined Scenario</em>`;
+        }
+        
+        return details;
+    }
+
+    formatDefenseDetails(evaluation) {
+        let details = `<strong>Defense Analysis</strong><br>`;
+        details += `${evaluation.reasoning}<br><br>`;
+        
+        if (evaluation.aiAnalysis) {
+            details += `<strong>AI Analysis:</strong><br>${evaluation.aiAnalysis}<br><br>`;
+        }
+        
+        details += `<strong>Detection Probability:</strong> ${Math.round(evaluation.detectionChance * 100)}%<br>`;
+        
+        if (evaluation.detected) {
+            details += `<br><span style="color: #28a745;">🛡️ ATTACK DETECTED AND BLOCKED</span>`;
+        } else if (evaluation.successful) {
+            details += `<br><span style="color: #dc3545;">🚨 ATTACK SUCCEEDED - SYSTEM BREACH</span>`;
+        } else {
+            details += `<br><span style="color: #ffc107;">⚠️ ATTACK BLOCKED - NO BREACH</span>`;
+        }
+        
+        return details;
     }
 }
 

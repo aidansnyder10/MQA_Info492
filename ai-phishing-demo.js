@@ -406,7 +406,14 @@ Return only valid JSON in this exact format:
                                         for (let i = 0; i < lines.length; i++) {
                                             const line = lines[i].trim();
                                             if (line.includes('"subject"')) {
-                                                subject = line.split(':')[1].replace(/[",]/g, '').trim();
+                                                // Extract subject between quotes
+                                                const subjectMatch = line.match(/"subject":\s*"([^"]+)"/);
+                                                if (subjectMatch) {
+                                                    subject = subjectMatch[1];
+                                                } else {
+                                                    // Fallback to simple split
+                                                    subject = line.split(':')[1].replace(/[",]/g, '').trim();
+                                                }
                                             } else if (line.includes('"content"')) {
                                                 inContent = true;
                                                 // Get content from next lines until we hit a closing quote
@@ -422,7 +429,14 @@ Return only valid JSON in this exact format:
                                                 }
                                                 content = contentLines.join('\\n').replace(/"/g, '\\"');
                                             } else if (line.includes('"sender"')) {
-                                                sender = line.split(':')[1].replace(/[",]/g, '').trim();
+                                                // Extract sender between quotes
+                                                const senderMatch = line.match(/"sender":\s*"([^"]+)"/);
+                                                if (senderMatch) {
+                                                    sender = senderMatch[1];
+                                                } else {
+                                                    // Fallback to simple split
+                                                    sender = line.split(':')[1].replace(/[",]/g, '').trim();
+                                                }
                                             }
                                         }
                                         

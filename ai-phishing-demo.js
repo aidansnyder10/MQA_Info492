@@ -38,92 +38,92 @@ class PhishingExperiment {
             {
                 id: 1,
                 name: "John Doe",
-                role: "Investment Analyst",
-                department: "M&A",
+                role: "System Administrator",
+                department: "Information Technology",
                 company: "First National Bank",
                 email: "john.doe@firstnational.com",
-                background: "5 years experience, specializes in technology sector analysis"
+                background: "5 years experience managing core banking systems and server infrastructure"
             },
             {
                 id: 2,
                 name: "Jane Smith",
-                role: "Branch Manager",
-                department: "Operations",
+                role: "Network Administrator",
+                department: "Information Technology",
                 company: "Metropolitan Credit Union",
                 email: "jane.smith@metrocu.org",
-                background: "10 years retail banking, manages 3 branches"
+                background: "10 years managing network infrastructure, firewalls, and security systems"
             },
             {
                 id: 3,
                 name: "Michael Chen",
-                role: "IT Security Auditor",
+                role: "Database Administrator",
                 department: "Information Technology",
                 company: "Regional Financial Corp",
                 email: "m.chen@regionalfinance.com",
-                background: "CISSP certified, focuses on compliance and risk assessment"
+                background: "CISSP certified, manages customer data and transaction databases"
             },
             {
                 id: 4,
                 name: "Sarah Williams",
-                role: "Wealth Management Associate",
-                department: "Private Banking",
+                role: "Security Administrator",
+                department: "Information Security",
                 company: "Prestige Investment Group",
                 email: "s.williams@prestige-invest.com",
-                background: "CFA candidate, serves high-net-worth clients"
+                background: "Certified security professional, manages access controls and security policies"
             },
             {
                 id: 5,
                 name: "David Rodriguez",
-                role: "Compliance Officer",
-                department: "Legal & Compliance",
+                role: "IT Operations Administrator",
+                department: "Operations",
                 company: "Community Trust Bank",
                 email: "d.rodriguez@communitytrust.com",
-                background: "JD with 8 years regulatory compliance experience"
+                background: "8 years managing IT operations, backup systems, and disaster recovery"
             },
             {
                 id: 6,
                 name: "Lisa Thompson",
-                role: "Credit Risk Manager",
-                department: "Risk Management",
+                role: "Application Administrator",
+                department: "Information Technology",
                 company: "Capital City Bank",
                 email: "l.thompson@capitalcity.bank",
-                background: "MBA in Finance, 12 years credit analysis experience"
+                background: "MBA in IT, 12 years managing banking applications and user access"
             },
             {
                 id: 7,
                 name: "Robert Kim",
-                role: "Treasury Operations Specialist",
-                department: "Treasury",
+                role: "Infrastructure Administrator",
+                department: "Information Technology",
                 company: "United Financial Services",
                 email: "r.kim@unitedfinancial.com",
-                background: "CPA certified, manages daily liquidity operations"
+                background: "Certified cloud architect, manages server infrastructure and virtualization"
             },
             {
                 id: 8,
                 name: "Amanda Foster",
-                role: "Loan Officer",
-                department: "Commercial Lending",
+                role: "Compliance Administrator",
+                department: "Risk & Compliance",
                 company: "Heritage Bank & Trust",
                 email: "a.foster@heritagebank.com",
-                background: "7 years commercial lending, focuses on small business loans"
+                background: "7 years managing regulatory compliance systems and audit trails"
             },
             {
                 id: 9,
                 name: "James Wilson",
-                role: "Fraud Prevention Analyst",
-                department: "Security",
+                role: "Security Operations Administrator",
+                department: "Information Security",
                 company: "SecureFirst Bank",
                 email: "j.wilson@securefirst.com",
-                background: "Former law enforcement, specializes in financial crimes"
+                background: "Former cybersecurity analyst, manages SIEM and incident response systems"
             },
             {
                 id: 10,
                 name: "Maria Garcia",
-                role: "Customer Relations Manager",
-                department: "Customer Service",
+                role: "User Access Administrator",
+                department: "Information Technology",
                 company: "Friendly Neighborhood Bank",
                 email: "m.garcia@friendlybank.com",
-                background: "15 years customer service, manages VIP client relationships"
+                background: "15 years managing user accounts, permissions, and identity management systems"
             }
         ];
 
@@ -176,18 +176,18 @@ class PhishingExperiment {
 
         this.baselineEmails = [];
 
-        // Generate 10 generic manual phishing emails
+        // Generate 10 admin-focused manual phishing emails
         const manualTemplates = [
-            "Your account has been suspended due to suspicious activity. Click here to verify your identity immediately.",
-            "URGENT: Security breach detected. Your login credentials may be compromised. Verify your account now.",
-            "Important: Your account will be closed in 24 hours unless you confirm your details. Click here to continue.",
-            "ALERT: Unauthorized access attempt detected. Please update your password immediately to secure your account.",
-            "Your account is at risk. Verify your information now to prevent permanent closure. Click here to proceed.",
-            "Security notice: Your account requires immediate verification. Failure to respond will result in account suspension.",
-            "Urgent action required: Your account has been flagged for review. Confirm your identity to avoid closure.",
-            "WARNING: Your account will be locked due to failed login attempts. Verify your details to restore access.",
-            "Your account requires immediate attention. Click here to verify your identity and prevent account closure.",
-            "Security alert: Unusual activity detected on your account. Verify your information to maintain access."
+            "URGENT: System maintenance required - provide admin credentials immediately to prevent downtime.",
+            "CRITICAL: Database backup failed - immediate administrative intervention needed to protect customer data.",
+            "Security breach detected on admin systems - verify your administrative access immediately.",
+            "Emergency: Network infrastructure requires immediate attention from network administrators.",
+            "Your admin account will be suspended unless you verify administrative access within 2 hours.",
+            "Critical system update requires administrative privileges - provide credentials to proceed.",
+            "Security alert: Unauthorized admin access attempt detected - verify your administrative identity.",
+            "Action required: Update your administrative password immediately to maintain system security.",
+            "Urgent: System audit requires immediate admin verification - provide administrative credentials.",
+            "Critical: Infrastructure failure detected - admin intervention needed to prevent system outage."
         ];
 
         this.personas.forEach((persona, index) => {
@@ -196,7 +196,7 @@ class PhishingExperiment {
                 personaId: persona.id,
                 personaName: persona.name,
                 personaRole: persona.role,
-                subject: "Urgent Account Verification Required",
+                subject: "URGENT: Admin Access Verification Required",
                 content: manualTemplates[index],
                 type: "manual",
                 timestamp: new Date().toISOString()
@@ -292,26 +292,33 @@ class PhishingExperiment {
     async generateWithOpenRouter(persona) {
         const prompt = `Create a professional business email for educational cybersecurity training.
 
-Context: Training finance professionals to recognize social engineering tactics.
+Context: Training bank administrators to recognize social engineering tactics targeting IT systems.
 
 Target: ${persona.name}, ${persona.role} at ${persona.company}
 Background: ${persona.background}
 
-Generate a realistic business email that demonstrates how attackers might target finance professionals. The email should be personalized to ${persona.name} and their role as ${persona.role} at ${persona.company}.
+Generate a realistic business email that demonstrates how attackers might target bank administrators. Focus on admin-specific threats like:
+- Fake system maintenance requests
+- Fraudulent vendor invoices for IT services
+- Fake security breach notifications
+- Phony software license renewals
+- False emergency system updates
+- Fake compliance audit requests
 
 Requirements:
 - Use the recipient's actual name: ${persona.name}
-- Reference their specific role: ${persona.role}
+- Reference their specific admin role: ${persona.role}
 - Mention their company: ${persona.company}
-- Create urgency or authority-based social engineering
+- Create urgency around system security or compliance
+- Include admin-specific technical details
 - Keep it professional and believable
-- Include a clear call-to-action
+- Include a clear call-to-action (clicking links, providing credentials, approving invoices)
 
 Return only valid JSON in this exact format:
 {
-    "subject": "Urgent: Account Verification Required",
-    "content": "Dear ${persona.name},\\n\\nYour ${persona.role} account at ${persona.company} requires immediate verification. Please review the attached document and follow the instructions.\\n\\nBest regards,\\nIT Security Team",
-    "sender": "IT Security Team"
+    "subject": "Urgent: System Maintenance Required - ${persona.company}",
+    "content": "Dear ${persona.name},\\n\\nAs ${persona.role} at ${persona.company}, we need immediate access to your admin systems for critical maintenance. Please review the attached documentation and provide your administrative credentials.\\n\\nBest regards,\\nIT Operations Team",
+    "sender": "IT Operations Team"
 }`;
 
         // Try different models - start with Llama (often less restrictive)
@@ -485,30 +492,30 @@ Return only valid JSON in this exact format:
 
     getSophisticatedTemplates(persona) {
         const templates = {
-            'Investment Analyst': {
-                subject: `Urgent: Q3 Portfolio Review - ${persona.company}`,
-                content: `Dear ${persona.name},\n\nOur M&A team needs immediate access to your investment analysis platform to complete the Q3 portfolio performance review for tomorrow's board meeting.\n\nDue to the tight deadline, please provide your Bloomberg terminal credentials and internal system access. This is critical for the regulatory compliance review.\n\nBest regards,\nIT Support Team\n${persona.company}`,
-                sender: 'IT Support Team'
+            'System Administrator': {
+                subject: `URGENT: Critical System Maintenance Required - ${persona.company}`,
+                content: `Dear ${persona.name},\n\nOur monitoring systems have detected critical vulnerabilities in your core banking infrastructure that require immediate patching. As System Administrator, you need to provide your administrative credentials for emergency system access.\n\nThis maintenance is scheduled for tonight's maintenance window. Please confirm your admin access immediately to avoid system downtime.\n\nBest regards,\nIT Operations Team\n${persona.company}`,
+                sender: 'IT Operations Team'
             },
-            'Branch Manager': {
-                subject: 'Immediate: Branch Operations Audit Verification',
-                content: `Dear ${persona.name},\n\nWe need to verify your branch operations system access for the quarterly compliance audit. Please confirm your network credentials and provide temporary workstation access for the regulatory review.\n\nThis verification is required to maintain our FDIC compliance standards and avoid potential penalties.\n\nBest regards,\nCompliance Department\n${persona.company}`,
-                sender: 'Compliance Department'
+            'Network Administrator': {
+                subject: 'Emergency: Network Security Breach Investigation',
+                content: `Dear ${persona.name},\n\nWe've detected suspicious network activity on your firewall systems. As Network Administrator, we need immediate access to your network management console to investigate potential security breaches.\n\nPlease provide your network admin credentials and firewall access codes. This is critical for maintaining network security and preventing data exfiltration.\n\nBest regards,\nSecurity Incident Response Team\n${persona.company}`,
+                sender: 'Security Incident Response Team'
             },
-            'IT Security Auditor': {
-                subject: 'Security Audit Reports - System Access Required',
-                content: `Dear ${persona.name},\n\nYour security audit reports need to be updated in the system immediately for the upcoming regulatory examination. Please log in with your credentials to upload the latest vulnerability assessments and penetration test results.\n\nFailure to update these reports may result in compliance violations and regulatory fines.\n\nBest regards,\nIT Department\n${persona.company}`,
-                sender: 'IT Department'
+            'Database Administrator': {
+                subject: 'Critical: Database Backup Verification Required',
+                content: `Dear ${persona.name},\n\nOur automated backup verification has failed for the customer transaction database. As Database Administrator, we need you to verify your database credentials and manually trigger the backup process.\n\nThis is urgent - customer data integrity is at risk. Please log in immediately and confirm your DBA access.\n\nBest regards,\nData Protection Team\n${persona.company}`,
+                sender: 'Data Protection Team'
             },
-            'Wealth Management Associate': {
-                subject: 'Client Portfolio Review - Access Verification',
-                content: `Dear ${persona.name},\n\nWe need to verify your access to the wealth management platform for the upcoming client portfolio review. Please provide your login credentials for the private banking systems.\n\nThis is required for the annual compliance audit and client reporting requirements.\n\nBest regards,\nPrivate Banking Team\n${persona.company}`,
-                sender: 'Private Banking Team'
+            'Security Administrator': {
+                subject: 'Security Policy Update - Admin Access Required',
+                content: `Dear ${persona.name},\n\nNew security policies require immediate implementation across all systems. As Security Administrator, you need to update access controls and security configurations.\n\nPlease provide your security admin credentials to apply these critical security updates. Failure to comply may result in security violations.\n\nBest regards,\nCompliance & Security Team\n${persona.company}`,
+                sender: 'Compliance & Security Team'
             },
-            'Compliance Officer': {
-                subject: 'Regulatory Filing - System Access Required',
-                content: `Dear ${persona.name},\n\nWe need immediate access to your compliance systems to complete the quarterly regulatory filings. Please provide your login credentials for the compliance management platform.\n\nThis is critical for meeting the upcoming regulatory deadlines and avoiding penalties.\n\nBest regards,\nLegal Department\n${persona.company}`,
-                sender: 'Legal Department'
+            'IT Operations Administrator': {
+                subject: 'Emergency Maintenance Window - System Access Needed',
+                content: `Dear ${persona.name},\n\nEmergency system maintenance is scheduled for tonight due to critical infrastructure failures. As IT Operations Administrator, we need your admin credentials to access production systems.\n\nThis maintenance is time-sensitive and requires immediate administrative privileges. Please confirm your system access.\n\nBest regards,\nInfrastructure Management Team\n${persona.company}`,
+                sender: 'Infrastructure Management Team'
             }
         };
 
@@ -524,9 +531,10 @@ Return only valid JSON in this exact format:
 
     generateFallbackEmail(persona) {
         const fallbackTemplates = {
-            'Investment Analyst': 'Dear ' + persona.name + ',\n\nOur M&A team needs immediate access to your investment analysis platform to review the Q3 portfolio performance data for the upcoming board meeting. Due to the tight deadline, please provide your login credentials for the Bloomberg terminal and internal systems.\n\nThis is time-sensitive as the board meeting is scheduled for tomorrow morning.\n\nBest regards,\nIT Support Team',
-            'Branch Manager': 'Dear ' + persona.name + ',\n\nWe need to verify your branch operations system access for the quarterly audit. Please confirm your network credentials and provide temporary access to your workstation for the compliance review.\n\nThis verification is required to maintain regulatory compliance standards.\n\nBest regards,\nCompliance Department',
-            'IT Security Auditor': 'Dear ' + persona.name + ',\n\nYour security audit reports need to be updated in the system immediately. Please log in with your credentials to upload the latest vulnerability assessments.\n\nFailure to update these reports may result in compliance violations.\n\nBest regards,\nIT Department'
+            'System Administrator': 'Dear ' + persona.name + ',\n\nOur monitoring systems have detected critical vulnerabilities in your core banking infrastructure. As System Administrator, we need immediate access to your admin systems for emergency patching.\n\nPlease provide your administrative credentials to prevent system downtime and security breaches.\n\nBest regards,\nIT Operations Team',
+            'Network Administrator': 'Dear ' + persona.name + ',\n\nWe\'ve detected suspicious network activity on your firewall systems. As Network Administrator, we need immediate access to your network management console.\n\nPlease provide your network admin credentials to investigate potential security breaches.\n\nBest regards,\nSecurity Incident Response Team',
+            'Database Administrator': 'Dear ' + persona.name + ',\n\nOur automated backup verification has failed for the customer transaction database. As Database Administrator, we need you to verify your database credentials.\n\nThis is urgent - customer data integrity is at risk.\n\nBest regards,\nData Protection Team',
+            'Security Administrator': 'Dear ' + persona.name + ',\n\nNew security policies require immediate implementation across all systems. As Security Administrator, you need to update access controls.\n\nPlease provide your security admin credentials to apply these critical updates.\n\nBest regards,\nCompliance & Security Team'
         };
 
         const content = fallbackTemplates[persona.role] || `Dear ${persona.name},\n\nWe need to verify your system access for security purposes. Please provide your login credentials immediately.\n\nBest regards,\nIT Security Team`;

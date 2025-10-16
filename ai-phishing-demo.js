@@ -12,6 +12,9 @@ class PhishingExperiment {
         this.evaluationResults = [];
         this.currentPersonaIndex = 0;
         
+        console.log('Config loading - Claude Token:', this.claudeToken ? 'Found' : 'Not found');
+        console.log('Config loading - OpenRouter Key:', this.openRouterKey ? 'Found' : 'Not found');
+        
         this.initSupabase();
         this.loadPersonas();
         this.setupEventListeners();
@@ -313,41 +316,18 @@ No other text, just the JSON.`;
 
         for (const model of models) {
             try {
-                // Try direct OpenRouter call first
-                let response;
-                try {
-                    response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${this.openRouterKey}`,
-                            'Content-Type': 'application/json',
-                            'HTTP-Referer': window.location.origin,
-                            'X-Title': 'AI Phishing Demo'
-                        },
-                        body: JSON.stringify({
-                            model: model,
-                            messages: [{
-                                role: 'user',
-                                content: prompt
-                            }],
-                            max_tokens: 500,
-                            temperature: 0.7
-                        })
-                    });
-                } catch (corsError) {
-                    // If CORS fails, try through local proxy
-                    console.log('Direct OpenRouter failed, trying through proxy...');
-                    response = await fetch('/api/proxy', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            provider: 'openrouter',
-                            model: model,
-                            inputs: prompt,
-                            openRouterKey: this.openRouterKey
-                        })
-                    });
-                }
+                // Use proxy by default to avoid CORS issues
+                console.log(`Trying OpenRouter model: ${model} through proxy...`);
+                const response = await fetch('/api/proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        provider: 'openrouter',
+                        model: model,
+                        inputs: prompt,
+                        openRouterKey: this.openRouterKey
+                    })
+                });
 
                 if (!response.ok) {
                     console.warn(`Model ${model} failed with status: ${response.status}`);

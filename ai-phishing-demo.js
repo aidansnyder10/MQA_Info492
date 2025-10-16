@@ -353,17 +353,34 @@ Return only valid JSON in this exact format:
                 try {
                     emailData = JSON.parse(aiResponse);
                 } catch (e) {
-                    // Try extracting JSON from response
-                    const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-                    if (jsonMatch) {
+                    console.log(`Direct JSON parse failed for ${model}, trying extraction...`);
+                    
+                    // Try extracting JSON from markdown code blocks first
+                    const markdownMatch = aiResponse.match(/```json\s*([\s\S]*?)\s*```/);
+                    if (markdownMatch) {
+                        console.log(`Found JSON in markdown block for ${model}`);
                         try {
-                            emailData = JSON.parse(jsonMatch[0]);
+                            emailData = JSON.parse(markdownMatch[1]);
                         } catch (e2) {
-                            console.warn(`Model ${model} JSON parsing failed`);
-                            continue;
+                            console.warn(`Markdown JSON parse failed for ${model}`);
                         }
-                    } else {
-                        console.warn(`Model ${model} no JSON found`);
+                    }
+                    
+                    // If markdown didn't work, try finding JSON object
+                    if (!emailData) {
+                        const jsonMatch = aiResponse.match(/\{[\s\S]*?\}/);
+                        if (jsonMatch) {
+                            console.log(`Found JSON with regex for ${model}`);
+                            try {
+                                emailData = JSON.parse(jsonMatch[0]);
+                            } catch (e2) {
+                                console.warn(`Regex JSON parse failed for ${model}`);
+                            }
+                        }
+                    }
+                    
+                    if (!emailData) {
+                        console.warn(`Model ${model} JSON parsing failed completely`);
                         continue;
                     }
                 }

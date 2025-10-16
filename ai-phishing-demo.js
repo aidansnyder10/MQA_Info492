@@ -297,12 +297,20 @@ Context: Training finance professionals to recognize social engineering tactics.
 Target: ${persona.name}, ${persona.role} at ${persona.company}
 Background: ${persona.background}
 
-Generate a realistic business email that could be used in security awareness training. Focus on professional communication patterns that finance professionals encounter.
+Generate a realistic business email that demonstrates how attackers might target finance professionals. The email should be personalized to ${persona.name} and their role as ${persona.role} at ${persona.company}.
+
+Requirements:
+- Use the recipient's actual name: ${persona.name}
+- Reference their specific role: ${persona.role}
+- Mention their company: ${persona.company}
+- Create urgency or authority-based social engineering
+- Keep it professional and believable
+- Include a clear call-to-action
 
 Return only valid JSON in this exact format:
 {
-    "subject": "Account Verification Required",
-    "content": "Dear [Name],\n\nYour account requires verification. Please review the attached document.\n\nBest regards,\nIT Security",
+    "subject": "Urgent: Account Verification Required",
+    "content": "Dear ${persona.name},\\n\\nYour ${persona.role} account at ${persona.company} requires immediate verification. Please review the attached document and follow the instructions.\\n\\nBest regards,\\nIT Security Team",
     "sender": "IT Security Team"
 }`;
 
@@ -394,57 +402,51 @@ Return only valid JSON in this exact format:
                                 } catch (e3) {
                                     console.warn(`Cleaned JSON also failed for ${model}:`, e3.message);
                                     
-                                    // Last resort: manually construct the JSON
-                                    try {
-                                        console.log(`Attempting manual JSON construction for ${model}`);
-                                        const lines = jsonMatch[0].split('\n');
-                                        let subject = '';
-                                        let content = '';
-                                        let sender = '';
-                                        let inContent = false;
-                                        
-                                        for (let i = 0; i < lines.length; i++) {
-                                            const line = lines[i].trim();
-                                            if (line.includes('"subject"')) {
-                                                // Extract subject between quotes
-                                                const subjectMatch = line.match(/"subject":\s*"([^"]+)"/);
-                                                if (subjectMatch) {
-                                                    subject = subjectMatch[1];
-                                                } else {
-                                                    // Fallback to simple split
-                                                    subject = line.split(':')[1].replace(/[",]/g, '').trim();
-                                                }
-                                            } else if (line.includes('"content"')) {
-                                                inContent = true;
-                                                // Get content from next lines until we hit a closing quote
-                                                let contentLines = [];
-                                                for (let j = i + 1; j < lines.length; j++) {
-                                                    const contentLine = lines[j];
-                                                    if (contentLine.trim().endsWith('",') && !contentLine.trim().startsWith('"')) {
-                                                        contentLines.push(contentLine.trim().slice(0, -2));
-                                                        break;
-                                                    } else {
-                                                        contentLines.push(contentLine);
-                                                    }
-                                                }
-                                                content = contentLines.join('\\n').replace(/"/g, '\\"');
-                                            } else if (line.includes('"sender"')) {
-                                                // Extract sender between quotes
-                                                const senderMatch = line.match(/"sender":\s*"([^"]+)"/);
-                                                if (senderMatch) {
-                                                    sender = senderMatch[1];
-                                                } else {
-                                                    // Fallback to simple split
-                                                    sender = line.split(':')[1].replace(/[",]/g, '').trim();
+                                        // Last resort: manually construct the JSON with better content parsing
+                                        try {
+                                            console.log(`Attempting manual JSON construction for ${model}`);
+                                            const rawJson = jsonMatch[0];
+                                            
+                                            // Extract subject with regex
+                                            const subjectMatch = rawJson.match(/"subject":\s*"([^"]+)"/);
+                                            const subject = subjectMatch ? subjectMatch[1] : 'Urgent Action Required';
+                                            
+                                            // Extract sender with regex
+                                            const senderMatch = rawJson.match(/"sender":\s*"([^"]+)"/);
+                                            const sender = senderMatch ? senderMatch[1] : 'IT Security Team';
+                                            
+                                            // Extract content more carefully - find content between quotes
+                                            const contentStart = rawJson.indexOf('"content": "') + 11;
+                                            const contentEnd = rawJson.lastIndexOf('",');
+                                            let content = '';
+                                            
+                                            if (contentStart > 10 && contentEnd > contentStart) {
+                                                content = rawJson.substring(contentStart, contentEnd)
+                                                    .replace(/\\n/g, '\n')
+                                                    .replace(/\\"/g, '"')
+                                                    .replace(/\\\\/g, '\\')
+                                                    .trim();
+                                            }
+                                            
+                                            // If content extraction failed, try alternative method
+                                            if (!content || content.length < 10) {
+                                                const contentMatch = rawJson.match(/"content":\s*"([\s\S]*?)",\s*"sender"/);
+                                                if (contentMatch) {
+                                                    content = contentMatch[1]
+                                                        .replace(/\\n/g, '\n')
+                                                        .replace(/\\"/g, '"')
+                                                        .replace(/\\\\/g, '\\')
+                                                        .trim();
                                                 }
                                             }
-                                        }
-                                        
-                                        if (subject && content && sender) {
-                                            const manualJson = `{"subject":"${subject}","content":"${content}","sender":"${sender}"}`;
-                                            console.log(`Manual JSON:`, manualJson);
-                                            emailData = JSON.parse(manualJson);
-                                        }
+                                            
+                                            if (subject && content && sender) {
+                                                const manualJson = `{"subject":"${subject}","content":"${content}","sender":"${sender}"}`;
+                                                console.log(`Manual JSON constructed successfully:`, manualJson);
+                                                emailData = JSON.parse(manualJson);
+                                            } else {
+                                                console.log(`Manual construction failed - subject: ${!!subject}, content: ${!!content}, sender: ${!!sender}`);
+                                            }
                                     } catch (e4) {
                                         console.warn(`Manual JSON construction failed for ${model}:`, e4.message);
                                     }

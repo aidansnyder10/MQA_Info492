@@ -160,7 +160,11 @@
         // Load existing tokens
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('hfToken').value = localStorage.getItem('hf_token') || '';
-            document.getElementById('openRouterKey').value = localStorage.getItem('openrouter_key') || '';
+            
+            const openRouterKey = localStorage.getItem('openrouter_key') || '';
+            document.getElementById('openRouterKey').value = openRouterKey;
+            console.log('Loaded OpenRouter key from storage:', openRouterKey ? openRouterKey.substring(0, 10) + '...' : 'None');
+            
             document.getElementById('claudeToken').value = localStorage.getItem('claude_token') || '';
             document.getElementById('supabaseKey').value = localStorage.getItem('supabase_anon_key') || '';
         });
@@ -180,6 +184,9 @@
             
             if (openRouterKey) {
                 localStorage.setItem('openrouter_key', openRouterKey);
+                console.log('Saved OpenRouter key:', openRouterKey.substring(0, 10) + '...');
+            } else {
+                console.log('No OpenRouter key provided');
             }
             
             if (claudeToken) {
@@ -235,8 +242,12 @@
 
                     if (response.ok) {
                         const data = await response.json();
-                        showStatus('✅ OpenRouter API working! Connected to multiple AI models.', 'success');
-                        return;
+                        if (data.success && data.response) {
+                            showStatus('✅ OpenRouter API working! Connected to multiple AI models.', 'success');
+                            return;
+                        } else {
+                            throw new Error(`OpenRouter API error: ${data.error || 'Unknown error'}`);
+                        }
                     } else {
                         throw new Error(`OpenRouter API error: ${response.status}`);
                     }
@@ -272,8 +283,8 @@
                     
                     if (response.ok) {
                         const data = await response.json();
-                        if (data.success && data.data.content) {
-                            showStatus('✅ Claude API working! Response: ' + data.data.content[0].text.substring(0, 50) + '...', 'success');
+                        if (data.success && data.response) {
+                            showStatus('✅ Claude API working! Response: ' + data.response.substring(0, 50) + '...', 'success');
                             return; // Claude works, no need to test HF
                         } else {
                             console.log('Claude API response error:', data);

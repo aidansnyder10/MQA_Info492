@@ -360,9 +360,11 @@ Return only valid JSON in this exact format:
                     if (markdownMatch) {
                         console.log(`Found JSON in markdown block for ${model}`);
                         try {
-                            emailData = JSON.parse(markdownMatch[1]);
+                            const cleanJson = markdownMatch[1].trim();
+                            console.log(`Markdown JSON content:`, cleanJson);
+                            emailData = JSON.parse(cleanJson);
                         } catch (e2) {
-                            console.warn(`Markdown JSON parse failed for ${model}`);
+                            console.warn(`Markdown JSON parse failed for ${model}:`, e2.message);
                         }
                     }
                     
@@ -372,9 +374,24 @@ Return only valid JSON in this exact format:
                         if (jsonMatch) {
                             console.log(`Found JSON with regex for ${model}`);
                             try {
-                                emailData = JSON.parse(jsonMatch[0]);
+                                const cleanJson = jsonMatch[0].trim();
+                                console.log(`Regex JSON content:`, cleanJson);
+                                emailData = JSON.parse(cleanJson);
                             } catch (e2) {
-                                console.warn(`Regex JSON parse failed for ${model}`);
+                                console.warn(`Regex JSON parse failed for ${model}:`, e2.message);
+                                console.log(`Raw JSON string:`, JSON.stringify(jsonMatch[0]));
+                                
+                                // Try cleaning the JSON string
+                                try {
+                                    const cleaned = jsonMatch[0]
+                                        .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remove invisible chars
+                                        .replace(/\s+/g, ' ') // Normalize whitespace
+                                        .trim();
+                                    console.log(`Cleaned JSON:`, cleaned);
+                                    emailData = JSON.parse(cleaned);
+                                } catch (e3) {
+                                    console.warn(`Cleaned JSON also failed for ${model}:`, e3.message);
+                                }
                             }
                         }
                     }

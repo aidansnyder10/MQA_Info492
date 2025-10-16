@@ -385,12 +385,55 @@ Return only valid JSON in this exact format:
                                 try {
                                     const cleaned = jsonMatch[0]
                                         .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remove invisible chars
-                                        .replace(/\s+/g, ' ') // Normalize whitespace
+                                        .replace(/\r?\n/g, '\\n') // Escape newlines
+                                        .replace(/\t/g, '\\t') // Escape tabs
+                                        .replace(/"/g, '\\"') // Escape quotes in content
                                         .trim();
                                     console.log(`Cleaned JSON:`, cleaned);
                                     emailData = JSON.parse(cleaned);
                                 } catch (e3) {
                                     console.warn(`Cleaned JSON also failed for ${model}:`, e3.message);
+                                    
+                                    // Last resort: manually construct the JSON
+                                    try {
+                                        console.log(`Attempting manual JSON construction for ${model}`);
+                                        const lines = jsonMatch[0].split('\n');
+                                        let subject = '';
+                                        let content = '';
+                                        let sender = '';
+                                        let inContent = false;
+                                        
+                                        for (let i = 0; i < lines.length; i++) {
+                                            const line = lines[i].trim();
+                                            if (line.includes('"subject"')) {
+                                                subject = line.split(':')[1].replace(/[",]/g, '').trim();
+                                            } else if (line.includes('"content"')) {
+                                                inContent = true;
+                                                // Get content from next lines until we hit a closing quote
+                                                let contentLines = [];
+                                                for (let j = i + 1; j < lines.length; j++) {
+                                                    const contentLine = lines[j];
+                                                    if (contentLine.trim().endsWith('",') && !contentLine.trim().startsWith('"')) {
+                                                        contentLines.push(contentLine.trim().slice(0, -2));
+                                                        break;
+                                                    } else {
+                                                        contentLines.push(contentLine);
+                                                    }
+                                                }
+                                                content = contentLines.join('\\n').replace(/"/g, '\\"');
+                                            } else if (line.includes('"sender"')) {
+                                                sender = line.split(':')[1].replace(/[",]/g, '').trim();
+                                            }
+                                        }
+                                        
+                                        if (subject && content && sender) {
+                                            const manualJson = `{"subject":"${subject}","content":"${content}","sender":"${sender}"}`;
+                                            console.log(`Manual JSON:`, manualJson);
+                                            emailData = JSON.parse(manualJson);
+                                        }
+                                    } catch (e4) {
+                                        console.warn(`Manual JSON construction failed for ${model}:`, e4.message);
+                                    }
                                 }
                             }
                         }

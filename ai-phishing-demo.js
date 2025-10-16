@@ -736,7 +736,12 @@ Return only valid JSON in this exact format:
                 .limit(1);
 
             if (tableError && tableError.code === 'PGRST116') {
-                console.log('Supabase table does not exist yet. Please run the phishing-schema.sql to create it.');
+                console.log('⚠️ Supabase table "phishing_experiment_results" does not exist yet.');
+                console.log('📋 To create it:');
+                console.log('   1. Go to: https://supabase.com/dashboard/project/cumodtrxkqakvjandlsw/sql');
+                console.log('   2. Copy and paste the SQL from phishing-schema.sql');
+                console.log('   3. Click "Run"');
+                console.log('💡 The demo works fine without Supabase - results are still displayed in the UI!');
                 return;
             }
 

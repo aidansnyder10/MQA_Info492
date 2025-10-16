@@ -11,7 +11,7 @@ app.use(express.static('.'));
 // Create a proxy for both Hugging Face and Claude APIs
 app.use('/api/proxy', express.json(), async (req, res) => {
     try {
-        const { provider, model, inputs, parameters, token, claudeToken } = req.body;
+        const { provider, model, inputs, parameters, token, claudeToken, openRouterKey } = req.body;
         
         // Handle Claude API requests
         if (provider === 'claude') {
@@ -49,7 +49,52 @@ app.use('/api/proxy', express.json(), async (req, res) => {
             
             return res.status(response.status).json({
                 success: response.ok,
-                data: data,
+                response: data.content?.[0]?.text || data.error?.message || 'No response',
+                content: data.content?.[0]?.text,
+                error: data.error,
+                status: response.status
+            });
+        }
+
+        // Handle OpenRouter API requests
+        if (provider === 'openrouter') {
+            if (!openRouterKey) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'OpenRouter API key required',
+                    message: 'Please add your OpenRouter API key in the token manager.',
+                    status: 401
+                });
+            }
+
+            console.log('Proxying request to OpenRouter API');
+            
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${openRouterKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': req.headers.origin || 'http://localhost:8000',
+                    'X-Title': 'AI Phishing Demo'
+                },
+                body: JSON.stringify({
+                    model: model || 'meta-llama/llama-3.1-8b-instruct',
+                    messages: [{
+                        role: 'user',
+                        content: inputs
+                    }],
+                    max_tokens: 500,
+                    temperature: 0.7
+                })
+            });
+
+            const data = await response.json();
+            
+            return res.status(response.status).json({
+                success: response.ok,
+                response: data.choices?.[0]?.message?.content || data.error?.message || 'No response',
+                content: data.choices?.[0]?.message?.content,
+                error: data.error,
                 status: response.status
             });
         }

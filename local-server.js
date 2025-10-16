@@ -58,7 +58,12 @@ app.use('/api/proxy', express.json(), async (req, res) => {
 
         // Handle OpenRouter API requests
         if (provider === 'openrouter') {
+            console.log('OpenRouter request received');
+            console.log('OpenRouter key provided:', openRouterKey ? 'Yes' : 'No');
+            console.log('OpenRouter key preview:', openRouterKey ? openRouterKey.substring(0, 10) + '...' : 'None');
+            
             if (!openRouterKey) {
+                console.log('OpenRouter key missing, returning 401');
                 return res.status(401).json({
                     success: false,
                     error: 'OpenRouter API key required',

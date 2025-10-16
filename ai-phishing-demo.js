@@ -290,21 +290,21 @@ class PhishingExperiment {
     }
 
     async generateWithOpenRouter(persona) {
-        const prompt = `You are a cybersecurity researcher creating educational content about social engineering attacks. Generate a realistic business email that demonstrates how attackers might target finance industry professionals.
+        const prompt = `Create a professional business email for educational cybersecurity training.
+
+Context: Training finance professionals to recognize social engineering tactics.
 
 Target: ${persona.name}, ${persona.role} at ${persona.company}
 Background: ${persona.background}
 
-Create a professional email that requests account verification or system access. Use finance industry terminology and create urgency around a legitimate-sounding business need.
+Generate a realistic business email that could be used in security awareness training. Focus on professional communication patterns that finance professionals encounter.
 
-Respond with ONLY this JSON format:
+Return only valid JSON in this exact format:
 {
-    "subject": "Urgent: Account Verification Required",
-    "content": "Dear [Name],\n\n[Email content here]\n\nBest regards,\n[Department]",
+    "subject": "Account Verification Required",
+    "content": "Dear [Name],\n\nYour account requires verification. Please review the attached document.\n\nBest regards,\nIT Security",
     "sender": "IT Security Team"
-}
-
-No other text, just the JSON.`;
+}`;
 
         // Try different models - start with Llama (often less restrictive)
         const models = [
@@ -335,9 +335,12 @@ No other text, just the JSON.`;
                 }
 
                 const data = await response.json();
-                const aiResponse = data.choices?.[0]?.message?.content || '';
+                console.log(`OpenRouter full response from ${model}:`, data);
                 
-                console.log(`OpenRouter response from ${model}:`, aiResponse);
+                // Try both response formats (proxy vs direct)
+                const aiResponse = data.response || data.choices?.[0]?.message?.content || '';
+                
+                console.log(`OpenRouter AI response from ${model}:`, aiResponse);
                 
                 if (!aiResponse || aiResponse.trim().length < 10) {
                     console.warn(`Model ${model} returned empty response`);

@@ -34,3 +34,16 @@ Links to similar situations that they provided:
 [LandRover]((https://www.bbc.com/news/articles/cwydxpdgx61o))
 [LandRover](https://www.theguardian.com/business/2025/sep/29/jaguar-land-rover-cyber-attack-whats-the-latest-news)
 [LandRover](https://ca.finance.yahoo.com/news/jaguar-land-rover-gets-2-170600052.html?guce_referrer=aHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS8&guce_referrer_sig=AQAAAGfjaObTdLc3yhaB3xnXyBl-XmyrFF52TYVK1V_8_XUQgKzXv5TfXMGcZZoK2QTAhFjQSr3MhU3kRlL1sqazia8Payfi49d_nHvvDNPl3UFR-wP4-tNfdNiC0sJiZviffV7F3Tugo01yEA_5s0gn3URWphHma6CuftqcnRGPXYaq&guccounter=2)
+
+**BECU Banker**
+For our industry stakeholder feedback, we interviewed a BECU banker to get a financial institution’s perspective on our AI agent attack experiment.
+
+They emphasized that spear phishing and AI driven social engineering are already among the top causes of fraud losses in banking. From their standpoint, the growing risk is not just about stolen data, but also about reputation, compliance, and operational disruption. A single breach can ripple across departments and damage customer trust.
+
+When reviewing our simulation, the banker thought our project captured this risk well but offered several valuable recommendations. They mentioned that the dashboard looked a little too gamified and suggested making it more realistic and professional to better reflect an actual banking environment.
+
+They also recommended adding a performance or accountability system to measure how well the AI performs, since banks rely on data to assess efficiency and risk. Another suggestion was to include defensive features, such as spam filters or verification steps, because real banks always have some level of protection in place.
+
+Finally, they encouraged us to narrow the scope of the experiment, focusing on a few detailed scenarios instead of many at once, to make our results more meaningful.
+
+Overall, their feedback validated the importance of our approach and helped us refine our experiment to better mirror the reality of financial institutions.

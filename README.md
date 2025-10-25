@@ -80,11 +80,33 @@ The application will automatically:
 ## Project Structure
 
 ```
-├── index.html          # Main HTML file
-├── styles.css          # All CSS styling
-├── script.js           # JavaScript functionality
-├── supabase-schema.sql # Database schema
-└── README.md          # This file
+├── index.html                     # Main entry page linking to phishing campaign demos
+├── styles.css                     # Global CSS for academic and dashboard UI styling
+├── script.js                      # Main JavaScript controlling Demo 2 (AI phishing experiment)
+│
+├── api/                           # Backend proxy and API integration (Claude, OpenAI, etc.)
+├── ai-agent.js                    # Core logic for AI-driven phishing and response agents
+├── ai-phishing-demo.html/js        # Demo simulating AI-generated phishing campaign
+├── ai-vs-ai-agents.js             # Experiment comparing attack and defense AI agents
+│
+├── business-* / customer-* / support-*  # Email portals and dashboards for simulated enterprise users
+│   ├── *.html                     # Front-end interfaces for different user personas
+│   └── *.js                       # Interactive behavior and email handling logic
+│
+├── supabase-schema.sql            # Main database schema for phishing experiment
+├── supabase-permissions.sql       # Permission setup for secure Supabase integration
+│
+├── config-*.js                    # Configuration files for environment, tokens, and simplified setups
+├── openai-integration.js          # LLM integration using OpenAI API
+├── ollama-integration.js          # Local/Offline LLM connection
+├── claude-integration.js          # Claude API integration for comparative testing
+│
+├── phishing-schema.sql            # Schema for phishing campaign data and experiment logs
+├── working-hf-models.js           # Scripts for Hugging Face model experimentation
+│
+├── classfeedback.md               # Documented peer feedback from class presentations
+├── Interviews.md                  # Stakeholder feedback and qualitative insights
+└── README.md                      # Project overview and documentation (this file)
 ```
 
 ## Dashboard Sections
